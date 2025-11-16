@@ -1,10 +1,6 @@
 // Navegación entre pantallas
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
-    initToggleSwitch();
-    initDrawingBoard();
-    initBubbles();
-    initSpinner();
 });
 
 function initNavigation() {
@@ -13,18 +9,36 @@ function initNavigation() {
     activityCards.forEach(card => {
         card.addEventListener('click', () => {
             const activity = card.getAttribute('data-activity');
-            showScreen(`${activity}-screen`);
+            showScreen(`${activity}-screen`, activity);
         });
     });
 }
 
-function showScreen(screenId) {
+function showScreen(screenId, activity) {
     const screens = document.querySelectorAll('.screen');
     screens.forEach(screen => screen.classList.remove('active'));
 
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add('active');
+
+        // Inicializar la actividad cuando se muestra la pantalla
+        setTimeout(() => {
+            switch(activity) {
+                case 'toggle':
+                    initToggleSwitch();
+                    break;
+                case 'drawing':
+                    initDrawingBoard();
+                    break;
+                case 'bubbles':
+                    initBubbles();
+                    break;
+                case 'spinner':
+                    initSpinner();
+                    break;
+            }
+        }, 100);
     }
 }
 
@@ -32,46 +46,58 @@ function goHome() {
     showScreen('home-screen');
 }
 
-// Toggle Switch con sonido
+// Toggle Switch HORIZONTAL con sonido realista
+let toggleInitialized = false;
 function initToggleSwitch() {
+    if (toggleInitialized) return;
+    toggleInitialized = true;
+
     const toggle = document.getElementById('toggleSwitch');
     if (!toggle) return;
 
-    // Crear contexto de audio
     let audioContext;
 
     toggle.addEventListener('click', () => {
+        const wasActive = toggle.classList.contains('active');
         toggle.classList.toggle('active');
-        playToggleSound(toggle.classList.contains('active'));
+        playClickSound(!wasActive);
     });
 
-    function playToggleSound(isOn) {
-        // Crear contexto de audio si no existe
+    function playClickSound(isOn) {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
+        // Sonido de click mecánico
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
 
-        oscillator.connect(gainNode);
+        oscillator.connect(filter);
+        filter.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        // Frecuencia diferente para on/off
-        oscillator.frequency.value = isOn ? 800 : 400;
-        oscillator.type = 'sine';
+        // Simular click mecánico
+        oscillator.type = 'square';
+        oscillator.frequency.value = isOn ? 1200 : 800;
 
-        // Volumen suave
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        filter.type = 'lowpass';
+        filter.frequency.value = 2000;
+
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
 
         oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.1);
+        oscillator.stop(audioContext.currentTime + 0.05);
     }
 }
 
 // Pizarra de dibujo con auto-borrado
+let drawingInitialized = false;
 function initDrawingBoard() {
+    if (drawingInitialized) return;
+    drawingInitialized = true;
+
     const canvas = document.getElementById('drawingCanvas');
     if (!canvas) return;
 
@@ -87,6 +113,7 @@ function initDrawingBoard() {
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
+
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
@@ -94,19 +121,24 @@ function initDrawingBoard() {
     let lastX = 0;
     let lastY = 0;
     let hue = 0;
-
-    // Array para almacenar trazos y su tiempo de creación
     const strokes = [];
 
     function startDrawing(e) {
+        e.preventDefault();
         isDrawing = true;
-        [lastX, lastY] = getCoordinates(e);
+        const coords = getCoordinates(e);
+        if (coords) {
+            [lastX, lastY] = coords;
+        }
     }
 
     function draw(e) {
+        e.preventDefault();
         if (!isDrawing) return;
 
-        const [x, y] = getCoordinates(e);
+        const coords = getCoordinates(e);
+        if (!coords) return;
+        const [x, y] = coords;
 
         ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
         ctx.lineWidth = brushSizeInput.value;
@@ -118,7 +150,6 @@ function initDrawingBoard() {
         ctx.lineTo(x, y);
         ctx.stroke();
 
-        // Guardar el trazo con timestamp
         strokes.push({
             x1: lastX,
             y1: lastY,
@@ -130,17 +161,30 @@ function initDrawingBoard() {
         });
 
         [lastX, lastY] = [x, y];
-        hue = (hue + 1) % 360;
+        hue = (hue + 2) % 360;
     }
 
-    function stopDrawing() {
+    function stopDrawing(e) {
+        e.preventDefault();
         isDrawing = false;
     }
 
     function getCoordinates(e) {
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX || e.touches[0].clientX) - rect.left;
-        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+        let clientX, clientY;
+
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        if (clientX === undefined || clientY === undefined) return null;
+
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
         return [x, y];
     }
 
@@ -148,18 +192,12 @@ function initDrawingBoard() {
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('mouseleave', stopDrawing);
 
     // Touch events
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        startDrawing(e);
-    });
-    canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        draw(e);
-    });
-    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing, { passive: false });
 
     // Clear button
     clearBtn.addEventListener('click', () => {
@@ -168,16 +206,13 @@ function initDrawingBoard() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
-    // Auto-borrado gradual (después de 3 segundos)
+    // Auto-borrado gradual
     setInterval(() => {
         const now = Date.now();
-        const fadeTime = 3000; // 3 segundos
-
-        // Filtrar trazos viejos
+        const fadeTime = 3000;
         const validStrokes = strokes.filter(stroke => now - stroke.timestamp < fadeTime);
 
         if (validStrokes.length !== strokes.length) {
-            // Redibujar solo trazos válidos
             ctx.fillStyle = '#000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -186,49 +221,67 @@ function initDrawingBoard() {
                 ctx.lineWidth = stroke.width;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
-
                 ctx.beginPath();
                 ctx.moveTo(stroke.x1, stroke.y1);
                 ctx.lineTo(stroke.x2, stroke.y2);
                 ctx.stroke();
             });
 
-            // Actualizar array de trazos
             strokes.length = 0;
             strokes.push(...validStrokes);
         }
     }, 100);
 }
 
-// Burbujas pop
+// Burbujas pop con sonido y feedback visual
+let bubblesInitialized = false;
+let audioContext;
+
 function initBubbles() {
+    if (bubblesInitialized) return;
+    bubblesInitialized = true;
+
     const container = document.getElementById('bubblesContainer');
     if (!container) return;
 
     const colors = [
-        'rgba(255, 107, 107, 0.6)',
-        'rgba(78, 205, 196, 0.6)',
-        'rgba(255, 159, 243, 0.6)',
-        'rgba(132, 129, 255, 0.6)',
-        'rgba(255, 234, 167, 0.6)',
-        'rgba(162, 155, 254, 0.6)'
+        'rgba(255, 107, 107, 0.7)',
+        'rgba(78, 205, 196, 0.7)',
+        'rgba(255, 159, 243, 0.7)',
+        'rgba(132, 129, 255, 0.7)',
+        'rgba(255, 234, 167, 0.7)',
+        'rgba(162, 155, 254, 0.7)'
     ];
 
     function createBubble() {
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        if (containerWidth === 0 || containerHeight === 0) {
+            setTimeout(createBubble, 100);
+            return;
+        }
+
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
 
-        const size = Math.random() * 60 + 40;
+        const size = Math.random() * 50 + 50;
+        const left = Math.random() * (containerWidth - size);
+        const top = Math.random() * (containerHeight - size);
+
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
-        bubble.style.left = `${Math.random() * (container.clientWidth - size)}px`;
-        bubble.style.top = `${Math.random() * (container.clientHeight - size)}px`;
+        bubble.style.left = `${left}px`;
+        bubble.style.top = `${top}px`;
         bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
         bubble.style.animationDelay = `${Math.random() * 2}s`;
         bubble.style.animationDuration = `${Math.random() * 2 + 2}s`;
 
-        bubble.addEventListener('click', () => {
+        bubble.addEventListener('click', (e) => {
+            e.stopPropagation();
+            playPopSound();
             bubble.classList.add('popping');
+
             setTimeout(() => {
                 bubble.remove();
                 createBubble();
@@ -238,95 +291,146 @@ function initBubbles() {
         container.appendChild(bubble);
     }
 
-    // Crear burbujas iniciales
-    for (let i = 0; i < 12; i++) {
-        createBubble();
+    function playPopSound() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
     }
 
-    // Recrear burbujas cada cierto tiempo
+    // Crear burbujas iniciales
+    container.innerHTML = '';
+    for (let i = 0; i < 15; i++) {
+        setTimeout(() => createBubble(), i * 50);
+    }
+
+    // Mantener número de burbujas
     setInterval(() => {
-        if (container.children.length < 12) {
+        if (container.children.length < 15) {
             createBubble();
         }
-    }, 2000);
+    }, 1000);
 }
 
-// Spinner
+// Spinner realista - arrastrable
+let spinnerInitialized = false;
 function initSpinner() {
-    const spinner = document.getElementById('spinner');
-    const spinBtn = document.getElementById('spinBtn');
-    const speedInput = document.getElementById('spinSpeed');
+    if (spinnerInitialized) return;
+    spinnerInitialized = true;
 
-    if (!spinner || !spinBtn || !speedInput) return;
+    const spinner = document.getElementById('spinner');
+    const spinnerWrapper = document.querySelector('.spinner-wrapper');
+
+    if (!spinner || !spinnerWrapper) return;
 
     let rotation = 0;
-    let isSpinning = false;
-    let isDragging = false;
+    let velocity = 0;
     let lastAngle = 0;
+    let lastTime = 0;
+    let isDragging = false;
+    let animationId = null;
 
-    spinBtn.addEventListener('click', () => {
-        if (isSpinning) {
-            spinner.classList.remove('spinning');
-            isSpinning = false;
-            spinBtn.textContent = 'Girar';
-        } else {
-            const speed = speedInput.value;
-            spinner.style.animationDuration = `${11 - speed}s`;
-            spinner.classList.add('spinning');
-            isSpinning = true;
-            spinBtn.textContent = 'Parar';
-        }
-    });
-
-    // Drag para girar manualmente
-    spinner.addEventListener('mousedown', startDrag);
-    spinner.addEventListener('touchstart', startDrag);
-
-    function startDrag(e) {
-        isDragging = true;
-        spinner.classList.remove('spinning');
-        isSpinning = false;
-        spinBtn.textContent = 'Girar';
-
-        const rect = spinner.getBoundingClientRect();
+    function getAngle(e, rect) {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        return Math.atan2(clientY - centerY, clientX - centerX);
+    }
 
-        const clientX = e.clientX || e.touches[0].clientX;
-        const clientY = e.clientY || e.touches[0].clientY;
+    function startDrag(e) {
+        e.preventDefault();
+        isDragging = true;
+        velocity = 0;
 
-        lastAngle = Math.atan2(clientY - centerY, clientX - centerX) * 180 / Math.PI;
+        const rect = spinner.getBoundingClientRect();
+        lastAngle = getAngle(e, rect);
+        lastTime = Date.now();
 
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('touchmove', drag);
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
     }
 
     function drag(e) {
         if (!isDragging) return;
+        e.preventDefault();
 
         const rect = spinner.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
+        const currentAngle = getAngle(e, rect);
+        const currentTime = Date.now();
 
-        const clientX = e.clientX || e.touches[0].clientX;
-        const clientY = e.clientY || e.touches[0].clientY;
+        let delta = currentAngle - lastAngle;
 
-        const angle = Math.atan2(clientY - centerY, clientX - centerX) * 180 / Math.PI;
-        const delta = angle - lastAngle;
+        // Corregir salto de ángulo
+        if (delta > Math.PI) delta -= 2 * Math.PI;
+        if (delta < -Math.PI) delta += 2 * Math.PI;
 
-        rotation += delta;
+        rotation += delta * (180 / Math.PI);
+
+        // Calcular velocidad
+        const timeDelta = currentTime - lastTime;
+        if (timeDelta > 0) {
+            velocity = (delta * (180 / Math.PI)) / timeDelta * 16;
+        }
+
         spinner.style.transform = `rotate(${rotation}deg)`;
 
-        lastAngle = angle;
+        lastAngle = currentAngle;
+        lastTime = currentTime;
     }
 
     function stopDrag() {
+        if (!isDragging) return;
         isDragging = false;
-        document.removeEventListener('mousemove', drag);
-        document.removeEventListener('touchmove', drag);
-        document.removeEventListener('mouseup', stopDrag);
-        document.removeEventListener('touchend', stopDrag);
+
+        // Aplicar inercia
+        applyInertia();
     }
+
+    function applyInertia() {
+        const friction = 0.95;
+
+        function animate() {
+            if (Math.abs(velocity) < 0.1) {
+                velocity = 0;
+                return;
+            }
+
+            velocity *= friction;
+            rotation += velocity;
+            spinner.style.transform = `rotate(${rotation}deg)`;
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        animate();
+    }
+
+    // Mouse events
+    spinner.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
+
+    // Touch events
+    spinner.addEventListener('touchstart', startDrag, { passive: false });
+    document.addEventListener('touchmove', drag, { passive: false });
+    document.addEventListener('touchend', stopDrag);
 }
