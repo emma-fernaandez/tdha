@@ -86,27 +86,48 @@ function initToggleSwitch() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        // Sonido de click mecánico
-        const oscillator = audioContext.createOscillator();
+        // Sonido de click mecánico realista de interruptor
+        const osc1 = audioContext.createOscillator();
+        const osc2 = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         const filter = audioContext.createBiquadFilter();
 
-        oscillator.connect(filter);
+        osc1.connect(filter);
+        osc2.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        // Simular click mecánico
-        oscillator.type = 'square';
-        oscillator.frequency.value = isOn ? 1200 : 800;
+        // Click de interruptor - diferente para ON y OFF
+        osc1.type = 'triangle';
+        osc2.type = 'sine';
 
-        filter.type = 'lowpass';
-        filter.frequency.value = 2000;
+        if (isOn) {
+            // Encender - tono más alto y brillante
+            osc1.frequency.value = 900;
+            osc2.frequency.value = 450;
+        } else {
+            // Apagar - tono más bajo y apagado
+            osc1.frequency.value = 600;
+            osc2.frequency.value = 300;
+        }
 
-        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+        // Filtro para simular el sonido mecánico
+        filter.type = 'bandpass';
+        filter.frequency.value = isOn ? 1000 : 700;
+        filter.Q.value = 3;
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.05);
+        // Click muy corto y seco
+        gainNode.gain.setValueAtTime(0.12, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.04);
+
+        // Decay rápido de frecuencia para simular el "clack"
+        osc1.frequency.exponentialRampToValueAtTime(isOn ? 200 : 150, audioContext.currentTime + 0.04);
+        osc2.frequency.exponentialRampToValueAtTime(isOn ? 100 : 80, audioContext.currentTime + 0.04);
+
+        osc1.start(audioContext.currentTime);
+        osc2.start(audioContext.currentTime);
+        osc1.stop(audioContext.currentTime + 0.04);
+        osc2.stop(audioContext.currentTime + 0.04);
     }
 }
 
@@ -359,23 +380,41 @@ function initBubbles() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        const oscillator = audioContext.createOscillator();
+        // Crear dos osciladores para un sonido de "pop" más realista
+        const osc1 = audioContext.createOscillator();
+        const osc2 = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
 
-        oscillator.connect(gainNode);
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        // Sonido más suave y agradable
-        oscillator.frequency.value = 600;
-        oscillator.type = 'sine';
+        // Pop suave y agradable - como explotar plástico de burbujas
+        osc1.type = 'sine';
+        osc1.frequency.value = 800;
 
-        gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        osc2.type = 'sine';
+        osc2.frequency.value = 1200;
 
-        oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.15);
+        // Filtro pasa-bajos para suavizar
+        filter.type = 'lowpass';
+        filter.frequency.value = 2000;
+        filter.Q.value = 1;
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.15);
+        // Volumen suave que decae rápido
+        gainNode.gain.setValueAtTime(0.06, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
+
+        // Frecuencias que bajan rápidamente (efecto pop)
+        osc1.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.08);
+        osc2.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.08);
+
+        osc1.start(audioContext.currentTime);
+        osc2.start(audioContext.currentTime);
+        osc1.stop(audioContext.currentTime + 0.08);
+        osc2.stop(audioContext.currentTime + 0.08);
     }
 
     // Crear burbujas iniciales SIN DELAY
