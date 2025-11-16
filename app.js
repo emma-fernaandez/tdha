@@ -121,6 +121,8 @@ function initDrawingBoard() {
 
     const ctx = canvas.getContext('2d');
     const brushSizeInput = document.getElementById('brushSize');
+    const fadeTimeInput = document.getElementById('fadeTime');
+    const fadeTimeValue = document.getElementById('fadeTimeValue');
     const clearBtn = document.getElementById('clearCanvas');
 
     // Ajustar tamaño del canvas
@@ -217,6 +219,11 @@ function initDrawingBoard() {
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', stopDrawing, { passive: false });
 
+    // Fade time control
+    fadeTimeInput.addEventListener('input', () => {
+        fadeTimeValue.textContent = fadeTimeInput.value;
+    });
+
     // Clear button
     clearBtn.addEventListener('click', () => {
         strokes.length = 0;
@@ -227,7 +234,7 @@ function initDrawingBoard() {
     // Auto-borrado gradual
     setInterval(() => {
         const now = Date.now();
-        const fadeTime = 3000;
+        const fadeTime = fadeTimeInput.value * 1000; // Convertir segundos a milisegundos
         const validStrokes = strokes.filter(stroke => now - stroke.timestamp < fadeTime);
 
         if (validStrokes.length !== strokes.length) {

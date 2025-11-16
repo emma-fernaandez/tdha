@@ -239,17 +239,18 @@ h1 {
     background: linear-gradient(145deg, #ffffff, #e8f5e9);
 }
 
-/* Drawing Canvas - MÁS GRANDE */
+/* Drawing Canvas - Grande pero centrado */
 #drawingCanvas {
-    width: 95vw;
-    max-width: 1200px;
-    height: clamp(450px, 70vh, 700px);
+    width: clamp(300px, 85vw, 900px);
+    height: clamp(350px, 60vh, 600px);
     background: #000;
     border-radius: 15px;
     cursor: crosshair;
     touch-action: none;
     box-shadow: 0 10px 40px rgba(0,0,0,0.6);
     border: 2px solid rgba(255, 255, 255, 0.2);
+    margin: 0 auto;
+    display: block;
 }
 
 .drawing-controls {
