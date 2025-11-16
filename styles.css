@@ -420,6 +420,7 @@ h1 {
     cursor: grab;
     padding: 20px;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .spinner-wrapper:active {
@@ -430,13 +431,19 @@ h1 {
     width: clamp(200px, 50vw, 350px);
     height: clamp(200px, 50vw, 350px);
     filter: drop-shadow(0 8px 25px rgba(0,0,0,0.5));
-    transition: filter 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
+    outline: none;
+    will-change: transform;
+    transform-origin: center center;
+}
+
+#spinner:focus {
+    outline: none;
 }
 
 #spinner:active {
-    filter: drop-shadow(0 12px 35px rgba(0,0,0,0.6));
+    outline: none;
 }
 
 /* Responsive Breakpoints */

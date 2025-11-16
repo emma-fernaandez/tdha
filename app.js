@@ -386,16 +386,14 @@ function initBubbles() {
     }, 1000);
 }
 
-// Spinner realista - arrastrable
+// Spinner realista con física mejorada - como un spinner real
 let spinnerInitialized = false;
 function initSpinner() {
     if (spinnerInitialized) return;
     spinnerInitialized = true;
 
     const spinner = document.getElementById('spinner');
-    const spinnerWrapper = document.querySelector('.spinner-wrapper');
-
-    if (!spinner || !spinnerWrapper) return;
+    if (!spinner) return;
 
     let rotation = 0;
     let velocity = 0;
@@ -403,23 +401,35 @@ function initSpinner() {
     let lastTime = 0;
     let isDragging = false;
     let animationId = null;
+    const velocityHistory = [];
 
-    function getAngle(e, rect) {
+    function getAngle(e) {
+        const rect = spinner.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+
+        let clientX, clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
         return Math.atan2(clientY - centerY, clientX - centerX);
     }
 
     function startDrag(e) {
         e.preventDefault();
+        e.stopPropagation();
+
         isDragging = true;
         velocity = 0;
+        velocityHistory.length = 0;
 
-        const rect = spinner.getBoundingClientRect();
-        lastAngle = getAngle(e, rect);
-        lastTime = Date.now();
+        lastAngle = getAngle(e);
+        lastTime = performance.now();
 
         if (animationId) {
             cancelAnimationFrame(animationId);
@@ -430,65 +440,99 @@ function initSpinner() {
     function drag(e) {
         if (!isDragging) return;
         e.preventDefault();
+        e.stopPropagation();
 
-        const rect = spinner.getBoundingClientRect();
-        const currentAngle = getAngle(e, rect);
-        const currentTime = Date.now();
+        const currentAngle = getAngle(e);
+        const currentTime = performance.now();
 
         let delta = currentAngle - lastAngle;
 
-        // Corregir salto de ángulo
+        // Normalizar delta para evitar saltos
         if (delta > Math.PI) delta -= 2 * Math.PI;
         if (delta < -Math.PI) delta += 2 * Math.PI;
 
-        rotation += delta * (180 / Math.PI);
+        const degreeDelta = delta * (180 / Math.PI);
+        rotation += degreeDelta;
 
-        // Calcular velocidad
+        // Calcular velocidad (grados por milisegundo)
         const timeDelta = currentTime - lastTime;
         if (timeDelta > 0) {
-            velocity = (delta * (180 / Math.PI)) / timeDelta * 16;
+            const currentVelocity = degreeDelta / timeDelta;
+
+            // Mantener historial de velocidad
+            velocityHistory.push(currentVelocity);
+            if (velocityHistory.length > 5) {
+                velocityHistory.shift();
+            }
         }
 
+        // Aplicar rotación inmediatamente
         spinner.style.transform = `rotate(${rotation}deg)`;
 
         lastAngle = currentAngle;
         lastTime = currentTime;
     }
 
-    function stopDrag() {
+    function stopDrag(e) {
         if (!isDragging) return;
         isDragging = false;
 
-        // Aplicar inercia
+        // Calcular velocidad promedio de los últimos movimientos
+        if (velocityHistory.length > 0) {
+            velocity = velocityHistory.reduce((a, b) => a + b, 0) / velocityHistory.length;
+            // Multiplicar por factor para simular spinner real (más inercia)
+            velocity *= 20;
+        }
+
+        velocityHistory.length = 0;
+
+        // Aplicar inercia como spinner real
         applyInertia();
     }
 
     function applyInertia() {
-        const friction = 0.95;
+        // Fricción más baja = gira más tiempo (como spinner real)
+        const friction = 0.985; // Antes era 0.95, ahora 0.985 para más inercia
+        const minVelocity = 0.05; // Velocidad mínima antes de parar
 
         function animate() {
-            if (Math.abs(velocity) < 0.1) {
+            if (Math.abs(velocity) < minVelocity) {
                 velocity = 0;
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
                 return;
             }
 
+            // Aplicar fricción
             velocity *= friction;
+
+            // Actualizar rotación
             rotation += velocity;
+
+            // Normalizar rotación para evitar números muy grandes
+            rotation = rotation % 360;
+
             spinner.style.transform = `rotate(${rotation}deg)`;
 
             animationId = requestAnimationFrame(animate);
         }
 
-        animate();
+        if (Math.abs(velocity) >= minVelocity) {
+            animate();
+        }
     }
 
     // Mouse events
-    spinner.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('mouseup', stopDrag);
+    spinner.addEventListener('mousedown', startDrag, false);
+    document.addEventListener('mousemove', drag, false);
+    document.addEventListener('mouseup', stopDrag, false);
+    document.addEventListener('mouseleave', stopDrag, false);
 
-    // Touch events
+    // Touch events - SIN passive para prevenir scroll
     spinner.addEventListener('touchstart', startDrag, { passive: false });
     document.addEventListener('touchmove', drag, { passive: false });
-    document.addEventListener('touchend', stopDrag);
+    document.addEventListener('touchend', stopDrag, false);
+    document.addEventListener('touchcancel', stopDrag, false);
 }
