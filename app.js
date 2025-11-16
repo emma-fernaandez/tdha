@@ -324,6 +324,9 @@ function initBubbles() {
         bubble.style.animationDelay = `${Math.random() * 2}s`;
         bubble.style.animationDuration = `${Math.random() * 2 + 2}s`;
 
+        // Animación de aparición suave
+        bubble.style.animation = 'bubbleAppear 0.4s ease-out, float 3s ease-in-out infinite ' + (Math.random() * 2) + 's';
+
         bubble.addEventListener('click', (e) => {
             e.stopPropagation();
 
