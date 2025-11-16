@@ -72,11 +72,53 @@
     <div id="toggle-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
         <button class="sound-btn" id="soundToggle" onclick="toggleSound()">🔊</button>
+        <button class="change-toggle-btn" onclick="changeToggleStyle()">🔄 Cambiar Modelo</button>
         <div class="activity-container">
             <h2>Interruptor Fidget</h2>
             <div class="toggle-wrapper">
-                <div class="toggle-switch" id="toggleSwitch">
-                    <div class="toggle-slider"></div>
+                <!-- Modelo 1: Moderno (actual) -->
+                <div class="toggle-modern toggle-model active" data-model="0">
+                    <div class="toggle-switch" id="toggleSwitch0">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <!-- Modelo 2: iOS Style -->
+                <div class="toggle-ios toggle-model" data-model="1">
+                    <div class="toggle-switch" id="toggleSwitch1">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <!-- Modelo 3: Material Design -->
+                <div class="toggle-material toggle-model" data-model="2">
+                    <div class="toggle-switch" id="toggleSwitch2">
+                        <div class="toggle-track"></div>
+                        <div class="toggle-thumb"></div>
+                    </div>
+                </div>
+
+                <!-- Modelo 4: 3D Skeuomorphic -->
+                <div class="toggle-3d toggle-model" data-model="3">
+                    <div class="toggle-switch" id="toggleSwitch3">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+
+                <!-- Modelo 5: Con Texto ON/OFF -->
+                <div class="toggle-text toggle-model" data-model="4">
+                    <div class="toggle-switch" id="toggleSwitch4">
+                        <span class="toggle-label-off">OFF</span>
+                        <div class="toggle-slider"></div>
+                        <span class="toggle-label-on">ON</span>
+                    </div>
+                </div>
+
+                <!-- Modelo 6: Minimalista -->
+                <div class="toggle-minimal toggle-model" data-model="5">
+                    <div class="toggle-switch" id="toggleSwitch5">
+                        <div class="toggle-slider"></div>
+                    </div>
                 </div>
             </div>
             <p class="hint">Toca para cambiar</p>

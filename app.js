@@ -62,73 +62,122 @@ function goHome() {
     showScreen('home-screen');
 }
 
-// Toggle Switch HORIZONTAL con sonido realista
+// Toggle Switch con múltiples modelos
 let toggleInitialized = false;
+let currentToggleModel = 0;
+let toggleState = false; // Estado global del toggle (ON/OFF)
+const totalToggleModels = 6;
+
 function initToggleSwitch() {
     if (toggleInitialized) return;
     toggleInitialized = true;
 
-    const toggle = document.getElementById('toggleSwitch');
+    // Inicializar todos los toggles
+    for (let i = 0; i < totalToggleModels; i++) {
+        const toggle = document.getElementById(`toggleSwitch${i}`);
+        if (toggle) {
+            toggle.addEventListener('click', () => handleToggleClick(i));
+        }
+    }
+}
+
+function handleToggleClick(modelIndex) {
+    const toggle = document.getElementById(`toggleSwitch${modelIndex}`);
     if (!toggle) return;
 
-    let audioContext;
+    toggleState = !toggleState;
 
-    toggle.addEventListener('click', () => {
-        const wasActive = toggle.classList.contains('active');
-        toggle.classList.toggle('active');
-        if (soundEnabled) {
-            playClickSound(!wasActive);
+    // Actualizar estado visual de todos los modelos
+    updateAllTogglesState();
+
+    // Reproducir sonido
+    if (soundEnabled) {
+        playClickSound(toggleState);
+    }
+}
+
+function updateAllTogglesState() {
+    for (let i = 0; i < totalToggleModels; i++) {
+        const toggle = document.getElementById(`toggleSwitch${i}`);
+        if (toggle) {
+            if (toggleState) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+        }
+    }
+}
+
+function changeToggleStyle() {
+    const allModels = document.querySelectorAll('.toggle-model');
+
+    // Generar un nuevo modelo aleatorio diferente al actual
+    let newModel;
+    do {
+        newModel = Math.floor(Math.random() * totalToggleModels);
+    } while (newModel === currentToggleModel && totalToggleModels > 1);
+
+    // Ocultar todos y mostrar el nuevo
+    allModels.forEach((model, index) => {
+        if (index === newModel) {
+            model.classList.add('active');
+        } else {
+            model.classList.remove('active');
         }
     });
 
-    function playClickSound(isOn) {
-        if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
+    currentToggleModel = newModel;
 
-        // Sonido de click mecánico realista de interruptor
-        const osc1 = audioContext.createOscillator();
-        const osc2 = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        const filter = audioContext.createBiquadFilter();
+    // Asegurar que el nuevo modelo tenga el estado correcto
+    updateAllTogglesState();
+}
 
-        osc1.connect(filter);
-        osc2.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+function playClickSound(isOn) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Click de interruptor - diferente para ON y OFF
-        osc1.type = 'triangle';
-        osc2.type = 'sine';
+    // Sonido de click mecánico realista de interruptor
+    const osc1 = audioContext.createOscillator();
+    const osc2 = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
 
-        if (isOn) {
-            // Encender - tono más alto y brillante
-            osc1.frequency.value = 900;
-            osc2.frequency.value = 450;
-        } else {
-            // Apagar - tono más bajo y apagado
-            osc1.frequency.value = 600;
-            osc2.frequency.value = 300;
-        }
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioContext.destination);
 
-        // Filtro para simular el sonido mecánico
-        filter.type = 'bandpass';
-        filter.frequency.value = isOn ? 1000 : 700;
-        filter.Q.value = 3;
+    // Click de interruptor - diferente para ON y OFF
+    osc1.type = 'triangle';
+    osc2.type = 'sine';
 
-        // Click muy corto y seco
-        gainNode.gain.setValueAtTime(0.12, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.04);
-
-        // Decay rápido de frecuencia para simular el "clack"
-        osc1.frequency.exponentialRampToValueAtTime(isOn ? 200 : 150, audioContext.currentTime + 0.04);
-        osc2.frequency.exponentialRampToValueAtTime(isOn ? 100 : 80, audioContext.currentTime + 0.04);
-
-        osc1.start(audioContext.currentTime);
-        osc2.start(audioContext.currentTime);
-        osc1.stop(audioContext.currentTime + 0.04);
-        osc2.stop(audioContext.currentTime + 0.04);
+    if (isOn) {
+        // Encender - tono más alto y brillante
+        osc1.frequency.value = 900;
+        osc2.frequency.value = 450;
+    } else {
+        // Apagar - tono más bajo y apagado
+        osc1.frequency.value = 600;
+        osc2.frequency.value = 300;
     }
+
+    // Filtro para simular el sonido mecánico
+    filter.type = 'bandpass';
+    filter.frequency.value = isOn ? 1000 : 700;
+    filter.Q.value = 3;
+
+    // Click muy corto y seco
+    gainNode.gain.setValueAtTime(0.12, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.04);
+
+    // Decay rápido de frecuencia para simular el "clack"
+    osc1.frequency.exponentialRampToValueAtTime(isOn ? 200 : 150, audioContext.currentTime + 0.04);
+    osc2.frequency.exponentialRampToValueAtTime(isOn ? 100 : 80, audioContext.currentTime + 0.04);
+
+    osc1.start(audioContext.currentTime);
+    osc2.start(audioContext.currentTime);
+    osc1.stop(audioContext.currentTime + 0.04);
+    osc2.stop(audioContext.currentTime + 0.04);
 }
 
 // Pizarra de dibujo con auto-borrado

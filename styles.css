@@ -255,15 +255,55 @@ h1 {
 }
 
 /* Toggle Switch HORIZONTAL - Como interruptor de luz */
+/* Botón cambiar modelo de toggle */
+.change-toggle-btn {
+    position: fixed;
+    bottom: clamp(20px, 4vw, 30px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.change-toggle-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.change-toggle-btn:active {
+    transform: translateX(-50%) scale(0.98);
+}
+
 .toggle-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: clamp(300px, 50vh, 500px);
     padding: 20px;
+    position: relative;
 }
 
-.toggle-switch {
+/* Ocultar todos los modelos por defecto */
+.toggle-model {
+    display: none;
+}
+
+.toggle-model.active {
+    display: block;
+}
+
+/* MODELO 1: Moderno (actual) */
+.toggle-modern .toggle-switch {
     width: clamp(200px, 60vw, 400px);
     height: clamp(100px, 25vw, 180px);
     background: linear-gradient(180deg, rgba(200, 200, 200, 0.3), rgba(150, 150, 150, 0.3));
@@ -277,18 +317,18 @@ h1 {
                 inset 0 -3px 8px rgba(0,0,0,0.2);
 }
 
-.toggle-switch:active {
+.toggle-modern .toggle-switch:active {
     transform: scale(0.98);
 }
 
-.toggle-switch.active {
+.toggle-modern .toggle-switch.active {
     background: linear-gradient(180deg, rgba(76, 175, 80, 0.6), rgba(56, 142, 60, 0.6));
     box-shadow: 0 0 40px rgba(76, 175, 80, 0.5),
                 0 10px 30px rgba(0,0,0,0.4),
                 inset 0 -3px 8px rgba(0,0,0,0.2);
 }
 
-.toggle-slider {
+.toggle-modern .toggle-slider {
     width: 48%;
     height: 85%;
     background: linear-gradient(145deg, #ffffff, #d5d5d5);
@@ -304,9 +344,218 @@ h1 {
     border: 2px solid rgba(255, 255, 255, 0.8);
 }
 
-.toggle-switch.active .toggle-slider {
+.toggle-modern .toggle-switch.active .toggle-slider {
     left: 49.5%;
     background: linear-gradient(145deg, #ffffff, #e8f5e9);
+}
+
+/* MODELO 2: iOS Style */
+.toggle-ios .toggle-switch {
+    width: clamp(120px, 30vw, 180px);
+    height: clamp(60px, 15vw, 90px);
+    background: rgba(200, 200, 200, 0.5);
+    border-radius: 100px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.toggle-ios .toggle-switch.active {
+    background: #34c759;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.toggle-ios .toggle-slider {
+    width: clamp(50px, 13vw, 80px);
+    height: clamp(50px, 13vw, 80px);
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 5px;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.toggle-ios .toggle-switch.active .toggle-slider {
+    left: calc(100% - clamp(50px, 13vw, 80px) - 5px);
+}
+
+/* MODELO 3: Material Design */
+.toggle-material .toggle-switch {
+    width: clamp(100px, 25vw, 140px);
+    height: clamp(50px, 12vw, 70px);
+    position: relative;
+    cursor: pointer;
+}
+
+.toggle-material .toggle-track {
+    width: 100%;
+    height: 50%;
+    background: rgba(200, 200, 200, 0.5);
+    border-radius: 20px;
+    position: absolute;
+    top: 25%;
+    transition: all 0.3s ease;
+}
+
+.toggle-material .toggle-switch.active .toggle-track {
+    background: rgba(103, 58, 183, 0.5);
+}
+
+.toggle-material .toggle-thumb {
+    width: clamp(40px, 10vw, 60px);
+    height: clamp(40px, 10vw, 60px);
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 5px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.toggle-material .toggle-switch.active .toggle-thumb {
+    left: calc(100% - clamp(40px, 10vw, 60px) - 5px);
+    background: #673ab7;
+}
+
+/* MODELO 4: 3D Skeuomorphic */
+.toggle-3d .toggle-switch {
+    width: clamp(180px, 50vw, 350px);
+    height: clamp(90px, 22vw, 160px);
+    background: linear-gradient(180deg, #2c2c2c, #1a1a1a);
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 5px solid #3a3a3a;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6),
+                inset 0 -5px 15px rgba(0,0,0,0.5),
+                inset 0 5px 10px rgba(255,255,255,0.05);
+}
+
+.toggle-3d .toggle-switch.active {
+    background: linear-gradient(180deg, #1a4d2e, #0f3b20);
+    border-color: #2a5a3a;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6),
+                0 0 30px rgba(76, 175, 80, 0.4),
+                inset 0 -5px 15px rgba(0,0,0,0.5),
+                inset 0 5px 10px rgba(76, 175, 80, 0.2);
+}
+
+.toggle-3d .toggle-slider {
+    width: 46%;
+    height: 80%;
+    background: linear-gradient(145deg, #e0e0e0, #a0a0a0);
+    border-radius: 15px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 3%;
+    transition: all 0.2s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5),
+                inset -3px -3px 10px rgba(0,0,0,0.3),
+                inset 3px 3px 10px rgba(255,255,255,0.4);
+    border: 3px solid #b0b0b0;
+}
+
+.toggle-3d .toggle-switch.active .toggle-slider {
+    left: 51%;
+    background: linear-gradient(145deg, #90ee90, #60d060);
+    border-color: #70d070;
+}
+
+/* MODELO 5: Con Texto ON/OFF */
+.toggle-text .toggle-switch {
+    width: clamp(160px, 45vw, 300px);
+    height: clamp(80px, 20vw, 140px);
+    background: rgba(150, 150, 150, 0.4);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+}
+
+.toggle-text .toggle-switch.active {
+    background: rgba(76, 175, 80, 0.5);
+}
+
+.toggle-text .toggle-label-off,
+.toggle-text .toggle-label-on {
+    font-size: clamp(1rem, 4vw, 1.5rem);
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.4);
+    transition: all 0.2s ease;
+    z-index: 1;
+}
+
+.toggle-text .toggle-switch.active .toggle-label-on {
+    color: white;
+}
+
+.toggle-text .toggle-switch:not(.active) .toggle-label-off {
+    color: white;
+}
+
+.toggle-text .toggle-slider {
+    width: 42%;
+    height: 85%;
+    background: white;
+    border-radius: 8px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 3%;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.toggle-text .toggle-switch.active .toggle-slider {
+    left: 55%;
+}
+
+/* MODELO 6: Minimalista */
+.toggle-minimal .toggle-switch {
+    width: clamp(140px, 35vw, 220px);
+    height: clamp(70px, 17vw, 110px);
+    background: transparent;
+    border-radius: 60px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 4px solid rgba(255, 255, 255, 0.6);
+}
+
+.toggle-minimal .toggle-switch.active {
+    border-color: #4CAF50;
+}
+
+.toggle-minimal .toggle-slider {
+    width: 48%;
+    height: 90%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 2%;
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+}
+
+.toggle-minimal .toggle-switch.active .toggle-slider {
+    left: 50%;
+    background: #4CAF50;
+    border-color: #4CAF50;
 }
 
 /* Drawing Canvas - Grande pero centrado */
