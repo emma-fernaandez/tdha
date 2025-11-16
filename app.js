@@ -1,3 +1,19 @@
+// Estado global de sonido
+let soundEnabled = true;
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const soundButtons = document.querySelectorAll('.sound-btn');
+    soundButtons.forEach(btn => {
+        btn.textContent = soundEnabled ? '🔊' : '🔇';
+        if (soundEnabled) {
+            btn.classList.remove('muted');
+        } else {
+            btn.classList.add('muted');
+        }
+    });
+}
+
 // Navegación entre pantallas
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
@@ -22,8 +38,8 @@ function showScreen(screenId, activity) {
     if (targetScreen) {
         targetScreen.classList.add('active');
 
-        // Inicializar la actividad cuando se muestra la pantalla
-        setTimeout(() => {
+        // Inicializar la actividad cuando se muestra la pantalla (sin delay)
+        requestAnimationFrame(() => {
             switch(activity) {
                 case 'toggle':
                     initToggleSwitch();
@@ -38,7 +54,7 @@ function showScreen(screenId, activity) {
                     initSpinner();
                     break;
             }
-        }, 100);
+        });
     }
 }
 
@@ -60,7 +76,9 @@ function initToggleSwitch() {
     toggle.addEventListener('click', () => {
         const wasActive = toggle.classList.contains('active');
         toggle.classList.toggle('active');
-        playClickSound(!wasActive);
+        if (soundEnabled) {
+            playClickSound(!wasActive);
+        }
     });
 
     function playClickSound(isOn) {
@@ -233,7 +251,7 @@ function initDrawingBoard() {
     }, 100);
 }
 
-// Burbujas pop con sonido y feedback visual
+// Burbujas pop con sonido suave y partículas
 let bubblesInitialized = false;
 let audioContext;
 
@@ -258,7 +276,7 @@ function initBubbles() {
         const containerHeight = container.clientHeight;
 
         if (containerWidth === 0 || containerHeight === 0) {
-            setTimeout(createBubble, 100);
+            requestAnimationFrame(createBubble);
             return;
         }
 
@@ -268,27 +286,65 @@ function initBubbles() {
         const size = Math.random() * 50 + 50;
         const left = Math.random() * (containerWidth - size);
         const top = Math.random() * (containerHeight - size);
+        const color = colors[Math.floor(Math.random() * colors.length)];
 
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
         bubble.style.left = `${left}px`;
         bubble.style.top = `${top}px`;
-        bubble.style.background = colors[Math.floor(Math.random() * colors.length)];
+        bubble.style.background = color;
         bubble.style.animationDelay = `${Math.random() * 2}s`;
         bubble.style.animationDuration = `${Math.random() * 2 + 2}s`;
 
         bubble.addEventListener('click', (e) => {
             e.stopPropagation();
-            playPopSound();
+
+            // Crear partículas de explosión
+            createParticles(bubble, color);
+
+            // Sonido suave
+            if (soundEnabled) {
+                playPopSound();
+            }
+
+            // Animar explosión
             bubble.classList.add('popping');
 
             setTimeout(() => {
                 bubble.remove();
                 createBubble();
-            }, 300);
-        });
+            }, 400);
+        }, { once: true });
 
         container.appendChild(bubble);
+    }
+
+    function createParticles(bubble, color) {
+        const rect = bubble.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const centerX = rect.left - containerRect.left + rect.width / 2;
+        const centerY = rect.top - containerRect.top + rect.height / 2;
+
+        // Crear 8 partículas
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'bubble-particle';
+            particle.style.background = color;
+            particle.style.left = `${centerX}px`;
+            particle.style.top = `${centerY}px`;
+
+            const angle = (i / 8) * Math.PI * 2;
+            const distance = 50 + Math.random() * 30;
+            const tx = Math.cos(angle) * distance;
+            const ty = Math.sin(angle) * distance;
+
+            particle.style.setProperty('--tx', `${tx}px`);
+            particle.style.setProperty('--ty', `${ty}px`);
+
+            container.appendChild(particle);
+
+            setTimeout(() => particle.remove(), 500);
+        }
     }
 
     function playPopSound() {
@@ -302,27 +358,29 @@ function initBubbles() {
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.value = 800;
+        // Sonido más suave y agradable
+        oscillator.frequency.value = 600;
         oscillator.type = 'sine';
 
-        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
 
-        oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.2);
+        oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.15);
 
         oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.2);
+        oscillator.stop(audioContext.currentTime + 0.15);
     }
 
-    // Crear burbujas iniciales
+    // Crear burbujas iniciales SIN DELAY
     container.innerHTML = '';
     for (let i = 0; i < 15; i++) {
-        setTimeout(() => createBubble(), i * 50);
+        requestAnimationFrame(() => createBubble());
     }
 
     // Mantener número de burbujas
     setInterval(() => {
-        if (container.children.length < 15) {
+        const bubbles = container.querySelectorAll('.bubble');
+        if (bubbles.length < 15) {
             createBubble();
         }
     }, 1000);

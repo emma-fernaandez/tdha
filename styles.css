@@ -130,6 +130,40 @@ h1 {
     transform: translateX(-1px) scale(0.97);
 }
 
+.sound-btn {
+    position: fixed;
+    top: clamp(15px, 3vw, 25px);
+    right: clamp(15px, 3vw, 25px);
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sound-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.sound-btn:active {
+    transform: scale(0.95);
+}
+
+.sound-btn.muted {
+    opacity: 0.5;
+}
+
 .activity-container {
     text-align: center;
     width: 100%;
@@ -205,11 +239,11 @@ h1 {
     background: linear-gradient(145deg, #ffffff, #e8f5e9);
 }
 
-/* Drawing Canvas */
+/* Drawing Canvas - MÁS GRANDE */
 #drawingCanvas {
-    width: 100%;
-    max-width: clamp(300px, 90vw, 700px);
-    height: clamp(300px, 50vh, 500px);
+    width: 95vw;
+    max-width: 1200px;
+    height: clamp(450px, 70vh, 700px);
     background: #000;
     border-radius: 15px;
     cursor: crosshair;
@@ -328,25 +362,53 @@ h1 {
 
 @keyframes pop {
     0% {
-        transform: scale(1);
+        transform: scale(1) rotate(0deg);
         opacity: 1;
         filter: brightness(1);
     }
+    20% {
+        transform: scale(1.4) rotate(10deg);
+        opacity: 0.9;
+        filter: brightness(1.8);
+    }
     50% {
-        transform: scale(1.3);
-        opacity: 0.8;
-        filter: brightness(1.5);
+        transform: scale(1.8) rotate(-5deg);
+        opacity: 0.6;
+        filter: brightness(2);
+        box-shadow: 0 0 30px currentColor,
+                    inset 0 0 20px rgba(255,255,255,0.8);
     }
     100% {
-        transform: scale(2.5);
+        transform: scale(3) rotate(0deg);
         opacity: 0;
-        filter: brightness(2);
+        filter: brightness(3);
     }
 }
 
 .bubble.popping {
-    animation: pop 0.3s cubic-bezier(0.4, 0.0, 0.6, 1) forwards;
+    animation: pop 0.4s cubic-bezier(0.4, 0.0, 0.6, 1) forwards;
     pointer-events: none;
+}
+
+/* Partículas de explosión */
+@keyframes particle {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(0);
+        opacity: 0;
+    }
+}
+
+.bubble-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particle 0.5s ease-out forwards;
 }
 
 /* Spinner */

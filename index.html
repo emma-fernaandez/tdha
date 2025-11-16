@@ -71,6 +71,7 @@
     <!-- Actividad: Toggle Switch -->
     <div id="toggle-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
+        <button class="sound-btn" id="soundToggle" onclick="toggleSound()">🔊</button>
         <div class="activity-container">
             <h2>Interruptor Fidget</h2>
             <div class="toggle-wrapper">
@@ -85,6 +86,7 @@
     <!-- Actividad: Pizarra de dibujo -->
     <div id="drawing-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
+        <button class="sound-btn" onclick="toggleSound()">🔊</button>
         <div class="activity-container">
             <h2>Pizarra Zen</h2>
             <canvas id="drawingCanvas"></canvas>
@@ -95,13 +97,13 @@
                 </label>
                 <button id="clearCanvas" class="control-btn">Limpiar</button>
             </div>
-            <p class="hint">Dibuja con el dedo - se borra automáticamente</p>
         </div>
     </div>
 
     <!-- Actividad: Burbujas -->
     <div id="bubbles-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
+        <button class="sound-btn" onclick="toggleSound()">🔊</button>
         <div class="activity-container">
             <h2>Pop Bubbles</h2>
             <div id="bubblesContainer"></div>
@@ -112,6 +114,7 @@
     <!-- Actividad: Spinner -->
     <div id="spinner-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
+        <button class="sound-btn" onclick="toggleSound()">🔊</button>
         <div class="activity-container">
             <h2>Spinner</h2>
             <div class="spinner-wrapper">
