@@ -449,93 +449,6 @@ function initSpinner() {
     let animationId = null;
     const velocityHistory = [];
 
-    // Audio para el spinner
-    let spinnerAudioContext;
-    let spinningOscillator = null;
-    let spinningGain = null;
-
-    // Funciones de sonido del spinner
-    function startSpinningSound() {
-        if (!soundEnabled) return;
-        if (spinningOscillator) return; // Ya está sonando
-
-        if (!spinnerAudioContext) {
-            spinnerAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        spinningOscillator = spinnerAudioContext.createOscillator();
-        spinningGain = spinnerAudioContext.createGain();
-
-        spinningOscillator.connect(spinningGain);
-        spinningGain.connect(spinnerAudioContext.destination);
-
-        spinningOscillator.type = 'sine';
-        spinningOscillator.frequency.value = 200;
-        spinningGain.gain.value = 0;
-
-        spinningOscillator.start();
-    }
-
-    function updateSpinningSound() {
-        if (!soundEnabled) {
-            // Si se desactivó el sonido, detener el sonido activo
-            if (spinningOscillator) {
-                stopSpinningSound();
-            }
-            return;
-        }
-
-        if (!spinningOscillator) return;
-
-        const absVelocity = Math.abs(velocity);
-
-        // Calcular volumen basado en velocidad (0 a 0.15)
-        const volume = Math.min(absVelocity / 30, 0.15);
-
-        // Calcular frecuencia basada en velocidad (150Hz a 400Hz)
-        const frequency = 150 + Math.min(absVelocity * 2, 250);
-
-        spinningGain.gain.setValueAtTime(volume, spinnerAudioContext.currentTime);
-        spinningOscillator.frequency.setValueAtTime(frequency, spinnerAudioContext.currentTime);
-    }
-
-    function stopSpinningSound() {
-        if (spinningOscillator) {
-            spinningGain.gain.exponentialRampToValueAtTime(0.001, spinnerAudioContext.currentTime + 0.1);
-            setTimeout(() => {
-                if (spinningOscillator) {
-                    spinningOscillator.stop();
-                    spinningOscillator = null;
-                    spinningGain = null;
-                }
-            }, 100);
-        }
-    }
-
-    function playFlickSound(intensity) {
-        if (!soundEnabled) return;
-
-        if (!spinnerAudioContext) {
-            spinnerAudioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        const osc = spinnerAudioContext.createOscillator();
-        const gain = spinnerAudioContext.createGain();
-
-        osc.connect(gain);
-        gain.connect(spinnerAudioContext.destination);
-
-        osc.type = 'triangle';
-        osc.frequency.value = 300 + intensity * 10;
-
-        const volume = Math.min(0.1 + intensity * 0.01, 0.2);
-        gain.gain.setValueAtTime(volume, spinnerAudioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, spinnerAudioContext.currentTime + 0.1);
-
-        osc.start(spinnerAudioContext.currentTime);
-        osc.stop(spinnerAudioContext.currentTime + 0.1);
-    }
-
     function getAngle(e) {
         const rect = spinner.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
@@ -619,12 +532,6 @@ function initSpinner() {
 
         velocityHistory.length = 0;
 
-        // Sonido de "flick" al soltar si tiene velocidad
-        const absVelocity = Math.abs(velocity);
-        if (absVelocity > 2) {
-            playFlickSound(absVelocity);
-        }
-
         // Aplicar inercia como spinner real
         applyInertia();
     }
@@ -634,15 +541,9 @@ function initSpinner() {
         const friction = 0.985; // Antes era 0.95, ahora 0.985 para más inercia
         const minVelocity = 0.05; // Velocidad mínima antes de parar
 
-        // Iniciar sonido de giro si tiene velocidad suficiente
-        if (Math.abs(velocity) >= 2) {
-            startSpinningSound();
-        }
-
         function animate() {
             if (Math.abs(velocity) < minVelocity) {
                 velocity = 0;
-                stopSpinningSound();
                 if (animationId) {
                     cancelAnimationFrame(animationId);
                     animationId = null;
@@ -660,9 +561,6 @@ function initSpinner() {
             rotation = rotation % 360;
 
             spinner.style.transform = `rotate(${rotation}deg)`;
-
-            // Actualizar sonido según velocidad
-            updateSpinningSound();
 
             animationId = requestAnimationFrame(animate);
         }
