@@ -61,6 +61,45 @@ php -S localhost:8000
 
 Luego abre tu navegador en `http://localhost:8000`
 
+## 🌐 Despliegue en Vercel
+
+La forma más fácil de tener tu app online es desplegarla en Vercel:
+
+### Opción 1: Deploy con Git (Recomendado)
+
+1. Ve a [vercel.com](https://vercel.com) e inicia sesión
+2. Haz clic en "Add New" → "Project"
+3. Importa tu repositorio de GitHub
+4. Vercel detectará automáticamente que es un sitio estático
+5. Haz clic en "Deploy"
+6. ¡Listo! Tu app estará en línea en segundos
+
+### Opción 2: Deploy con CLI
+
+```bash
+# Instalar Vercel CLI
+npm i -g vercel
+
+# Desde la carpeta del proyecto
+vercel
+
+# Para producción
+vercel --prod
+```
+
+### Opción 3: Deploy desde GitHub
+
+Simplemente haz push a tu repositorio y Vercel desplegará automáticamente cada vez que hagas cambios.
+
+**URL de ejemplo**: `https://tdha-fidget.vercel.app`
+
+### Alternativa: Netlify
+
+También puedes desplegar en Netlify:
+
+1. Arrastra la carpeta del proyecto a [app.netlify.com/drop](https://app.netlify.com/drop)
+2. O conecta tu repositorio de GitHub en Netlify
+
 ## 📱 Compatibilidad
 
 - ✅ Navegadores modernos (Chrome, Firefox, Safari, Edge)
