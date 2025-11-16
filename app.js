@@ -397,26 +397,43 @@ function generateNewObjective() {
 function ensureTargetColorBubbles() {
     if (!bubblesContainer || !createBubbleFunc) return;
 
-    // Contar burbujas existentes del color objetivo
+    const MAX_BUBBLES = 12;
     const existingBubbles = bubblesContainer.querySelectorAll('.bubble');
     let targetColorCount = 0;
+    const otherColorBubbles = [];
 
+    // Contar burbujas del color objetivo y guardar las de otros colores
     existingBubbles.forEach(bubble => {
         const bubbleColorIndex = parseInt(bubble.dataset.colorIndex);
         if (bubbleColorIndex === targetColorIndex) {
             targetColorCount++;
+        } else {
+            otherColorBubbles.push(bubble);
         }
     });
 
-    // Si hay menos burbujas del color objetivo que las requeridas, crear más
+    // Calcular cuántas burbujas necesitamos del color objetivo
     const bubblesNeeded = Math.max(0, targetCount - targetColorCount);
 
-    // Crear al menos el número de burbujas necesarias, con algunos extras para variedad
-    const bubblesToCreate = bubblesNeeded + 2;
+    if (bubblesNeeded > 0) {
+        const currentTotal = existingBubbles.length;
+        const bubblesToCreate = Math.min(bubblesNeeded + 1, 3); // Máximo 3 burbujas nuevas
 
-    for (let i = 0; i < bubblesToCreate; i++) {
+        // Si crear nuevas burbujas superaría el máximo, eliminar algunas de otros colores
+        const excessBubbles = (currentTotal + bubblesToCreate) - MAX_BUBBLES;
+        if (excessBubbles > 0 && otherColorBubbles.length > 0) {
+            // Eliminar burbujas de otros colores aleatoriamente
+            for (let i = 0; i < Math.min(excessBubbles, otherColorBubbles.length); i++) {
+                const randomIndex = Math.floor(Math.random() * otherColorBubbles.length);
+                const bubbleToRemove = otherColorBubbles.splice(randomIndex, 1)[0];
+                bubbleToRemove.remove();
+            }
+        }
+
         // Crear burbujas del color objetivo
-        requestAnimationFrame(() => createBubbleFunc(targetColorIndex));
+        for (let i = 0; i < bubblesToCreate; i++) {
+            requestAnimationFrame(() => createBubbleFunc(targetColorIndex));
+        }
     }
 }
 
@@ -577,16 +594,18 @@ function initBubbles() {
     // Guardar referencia global a createBubble
     createBubbleFunc = createBubble;
 
+    const MAX_BUBBLES = 12;
+
     // Crear burbujas iniciales SIN DELAY
     container.innerHTML = '';
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < MAX_BUBBLES; i++) {
         requestAnimationFrame(() => createBubble());
     }
 
     // Mantener número de burbujas
     setInterval(() => {
         const bubbles = container.querySelectorAll('.bubble');
-        if (bubbles.length < 15) {
+        if (bubbles.length < MAX_BUBBLES) {
             createBubble();
         }
     }, 1000);
