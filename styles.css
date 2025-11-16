@@ -7,15 +7,18 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     min-height: 100vh;
     color: #fff;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .screen {
     display: none;
     min-height: 100vh;
-    padding: 20px;
+    padding: clamp(15px, 4vw, 40px);
 }
 
 .screen.active {
@@ -26,28 +29,31 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
     text-align: center;
+    padding: 0 20px;
 }
 
 h1 {
-    font-size: 3rem;
-    margin-bottom: 10px;
+    font-size: clamp(2rem, 6vw, 4rem);
+    margin-bottom: clamp(10px, 2vw, 20px);
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    line-height: 1.2;
 }
 
 .subtitle {
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
     opacity: 0.9;
-    margin-bottom: 50px;
+    margin-bottom: clamp(30px, 5vw, 60px);
 }
 
 .activities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: clamp(15px, 3vw, 25px);
     margin-top: 30px;
+    padding: 0 10px;
 }
 
 .activity-card {
@@ -55,11 +61,16 @@ h1 {
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    padding: 30px 20px;
+    padding: clamp(25px, 5vw, 40px) clamp(15px, 3vw, 25px);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     color: white;
     text-align: center;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .activity-card:hover {
@@ -69,38 +80,45 @@ h1 {
 }
 
 .activity-card:active {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(0.98);
 }
 
 .activity-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    margin-bottom: clamp(10px, 2vw, 20px);
+    user-select: none;
 }
 
 .activity-card h3 {
-    font-size: 1.3rem;
-    margin-bottom: 8px;
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    margin-bottom: clamp(5px, 1vw, 10px);
+    font-weight: 600;
 }
 
 .activity-card p {
-    font-size: 0.9rem;
-    opacity: 0.8;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    opacity: 0.85;
+    line-height: 1.4;
 }
 
 .back-btn {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: clamp(15px, 3vw, 25px);
+    left: clamp(15px, 3vw, 25px);
     background: rgba(255, 255, 255, 0.2);
-    border: none;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 12px 20px;
-    border-radius: 10px;
+    padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 500;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     z-index: 100;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 44px;
+    min-width: 44px;
 }
 
 .back-btn:hover {
@@ -108,21 +126,28 @@ h1 {
     transform: translateX(-3px);
 }
 
+.back-btn:active {
+    transform: translateX(-1px) scale(0.97);
+}
+
 .activity-container {
     text-align: center;
     width: 100%;
-    max-width: 600px;
+    max-width: 900px;
+    padding: 0 20px;
 }
 
 .activity-container h2 {
-    font-size: 2rem;
-    margin-bottom: 30px;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: clamp(20px, 4vw, 40px);
+    font-weight: 600;
 }
 
 .hint {
-    margin-top: 20px;
-    opacity: 0.7;
-    font-size: 0.9rem;
+    margin-top: clamp(15px, 3vw, 25px);
+    opacity: 0.75;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    line-height: 1.5;
 }
 
 /* Toggle Switch */
@@ -130,81 +155,120 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 300px;
+    min-height: clamp(250px, 40vh, 400px);
+    padding: 20px;
 }
 
 .toggle-switch {
-    width: 200px;
-    height: 100px;
+    width: clamp(160px, 40vw, 280px);
+    height: clamp(80px, 20vw, 140px);
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 50px;
+    border-radius: 100px;
     position: relative;
     cursor: pointer;
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
     border: 3px solid rgba(255, 255, 255, 0.3);
+    -webkit-tap-highlight-color: transparent;
 }
 
 .toggle-switch.active {
     background: rgba(76, 175, 80, 0.5);
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.3);
 }
 
 .toggle-slider {
-    width: 80px;
-    height: 80px;
-    background: white;
+    width: clamp(64px, 16vw, 112px);
+    height: clamp(64px, 16vw, 112px);
+    background: linear-gradient(145deg, #ffffff, #e6e6e6);
     border-radius: 50%;
     position: absolute;
-    top: 7px;
-    left: 7px;
-    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    top: 50%;
+    transform: translateY(-50%);
+    left: 8px;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3),
+                inset -2px -2px 5px rgba(0,0,0,0.1),
+                inset 2px 2px 5px rgba(255,255,255,0.5);
 }
 
 .toggle-switch.active .toggle-slider {
-    left: 110px;
+    left: calc(100% - clamp(64px, 16vw, 112px) - 8px);
 }
 
 /* Drawing Canvas */
 #drawingCanvas {
     width: 100%;
-    max-width: 500px;
-    height: 400px;
+    max-width: clamp(300px, 90vw, 700px);
+    height: clamp(300px, 50vh, 500px);
     background: #000;
     border-radius: 15px;
     cursor: crosshair;
     touch-action: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .drawing-controls {
-    margin-top: 20px;
+    margin-top: clamp(20px, 4vw, 30px);
     display: flex;
-    gap: 20px;
+    gap: clamp(15px, 3vw, 25px);
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
+    padding: 0 10px;
 }
 
 .drawing-controls label {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     align-items: center;
+    font-size: clamp(0.85rem, 2vw, 1rem);
 }
 
 .drawing-controls input[type="range"] {
-    width: 150px;
+    width: clamp(120px, 30vw, 180px);
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    outline: none;
+}
+
+.drawing-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.drawing-controls input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .control-btn {
     background: rgba(255, 255, 255, 0.25);
     border: 2px solid rgba(255, 255, 255, 0.4);
     color: white;
-    padding: 10px 25px;
-    border-radius: 10px;
+    padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 30px);
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    font-weight: 500;
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 44px;
 }
 
 .control-btn:hover {
@@ -213,18 +277,19 @@ h1 {
 }
 
 .control-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.95);
 }
 
 /* Bubbles */
 #bubblesContainer {
     position: relative;
     width: 100%;
-    max-width: 500px;
-    height: 500px;
+    max-width: clamp(300px, 90vw, 650px);
+    height: clamp(350px, 60vh, 550px);
     margin: 0 auto;
     border-radius: 15px;
     overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .bubble {
@@ -235,10 +300,15 @@ h1 {
     box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1),
                 inset 10px 10px 20px rgba(255,255,255,0.3);
     transition: all 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .bubble:hover {
-    transform: scale(1.1);
+    transform: scale(1.15);
+}
+
+.bubble:active {
+    transform: scale(0.95);
 }
 
 @keyframes float {
@@ -260,8 +330,9 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 300px;
+    min-height: clamp(250px, 40vh, 400px);
     cursor: grab;
+    padding: 20px;
 }
 
 .spinner-wrapper:active {
@@ -269,8 +340,11 @@ h1 {
 }
 
 #spinner {
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+    width: clamp(180px, 45vw, 280px);
+    height: clamp(180px, 45vw, 280px);
+    filter: drop-shadow(0 5px 20px rgba(0,0,0,0.4));
     transition: transform 0.1s ease-out;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #spinner.spinning {
@@ -283,44 +357,189 @@ h1 {
 }
 
 .spinner-controls {
-    margin-top: 30px;
+    margin-top: clamp(20px, 4vw, 35px);
     display: flex;
-    gap: 20px;
+    gap: clamp(15px, 3vw, 25px);
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
+    padding: 0 10px;
 }
 
 .spinner-controls label {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     align-items: center;
+    font-size: clamp(0.85rem, 2vw, 1rem);
 }
 
 .spinner-controls input[type="range"] {
-    width: 150px;
+    width: clamp(120px, 30vw, 180px);
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    outline: none;
 }
 
-/* Responsive */
+.spinner-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.spinner-controls input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Responsive Breakpoints */
+
+/* Mobile Small */
+@media (max-width: 375px) {
+    .activities-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .activity-card {
+        min-height: 160px;
+    }
+
+    .back-btn {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Mobile */
 @media (max-width: 600px) {
-    h1 {
-        font-size: 2rem;
-    }
-
-    .subtitle {
-        font-size: 1rem;
-    }
-
     .activities-grid {
         grid-template-columns: 1fr;
     }
 
-    #drawingCanvas {
-        height: 300px;
+    .screen {
+        padding: 15px;
     }
 
+    .container {
+        padding: 0 10px;
+    }
+
+    /* Hacer las áreas táctiles más grandes en móvil */
+    .bubble {
+        min-width: 50px !important;
+        min-height: 50px !important;
+    }
+
+    .toggle-switch {
+        min-height: 80px;
+    }
+}
+
+/* Tablet */
+@media (min-width: 601px) and (max-width: 1024px) {
+    .activities-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .container {
+        max-width: 900px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .activities-grid {
+        grid-template-columns: repeat(4, 1fr);
+        max-width: 1200px;
+        margin: 30px auto;
+    }
+
+    .activity-card:hover {
+        transform: translateY(-8px);
+    }
+
+    /* Mejor experiencia con ratón en desktop */
+    .toggle-switch:hover {
+        transform: scale(1.02);
+    }
+
+    #spinner:hover {
+        filter: drop-shadow(0 8px 25px rgba(0,0,0,0.5));
+    }
+}
+
+/* Large Desktop */
+@media (min-width: 1440px) {
+    .container {
+        max-width: 1400px;
+    }
+
+    .activities-grid {
+        gap: 30px;
+    }
+}
+
+/* Landscape mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+    .screen {
+        padding: 10px;
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        margin-bottom: 20px;
+    }
+
+    .activity-container h2 {
+        margin-bottom: 15px;
+    }
+
+    .toggle-wrapper,
+    .spinner-wrapper {
+        min-height: 200px;
+    }
+
+    #drawingCanvas,
     #bubblesContainer {
-        height: 400px;
+        height: 300px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    /* Ya está optimizado para dark por defecto */
+}
+
+/* Reducir movimiento para usuarios con preferencias de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .bubble {
+        animation: none;
+    }
+
+    #spinner.spinning {
+        animation: none;
     }
 }
