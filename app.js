@@ -331,6 +331,8 @@ function initDrawingBoard() {
 // Burbujas pop con sonido suave y partículas
 let bubblesInitialized = false;
 let audioContext;
+let bubblesContainer = null;
+let createBubbleFunc = null;
 
 // Variables del modo juego
 let isGameMode = false;
@@ -387,6 +389,35 @@ function generateNewObjective() {
 
     targetColorDisplay.style.background = targetColor;
     objectiveCounter.textContent = `0/${targetCount}`;
+
+    // Asegurar que haya suficientes burbujas del color objetivo
+    ensureTargetColorBubbles();
+}
+
+function ensureTargetColorBubbles() {
+    if (!bubblesContainer || !createBubbleFunc) return;
+
+    // Contar burbujas existentes del color objetivo
+    const existingBubbles = bubblesContainer.querySelectorAll('.bubble');
+    let targetColorCount = 0;
+
+    existingBubbles.forEach(bubble => {
+        const bubbleColorIndex = parseInt(bubble.dataset.colorIndex);
+        if (bubbleColorIndex === targetColorIndex) {
+            targetColorCount++;
+        }
+    });
+
+    // Si hay menos burbujas del color objetivo que las requeridas, crear más
+    const bubblesNeeded = Math.max(0, targetCount - targetColorCount);
+
+    // Crear al menos el número de burbujas necesarias, con algunos extras para variedad
+    const bubblesToCreate = bubblesNeeded + 2;
+
+    for (let i = 0; i < bubblesToCreate; i++) {
+        // Crear burbujas del color objetivo
+        requestAnimationFrame(() => createBubbleFunc(targetColorIndex));
+    }
 }
 
 function updateObjectiveCounter() {
@@ -409,12 +440,15 @@ function initBubbles() {
     const container = document.getElementById('bubblesContainer');
     if (!container) return;
 
-    function createBubble() {
+    // Guardar referencia global al contenedor
+    bubblesContainer = container;
+
+    function createBubble(specificColorIndex = null) {
         const containerWidth = container.clientWidth;
         const containerHeight = container.clientHeight;
 
         if (containerWidth === 0 || containerHeight === 0) {
-            requestAnimationFrame(createBubble);
+            requestAnimationFrame(() => createBubble(specificColorIndex));
             return;
         }
 
@@ -424,7 +458,9 @@ function initBubbles() {
         const size = Math.random() * 50 + 50;
         const left = Math.random() * (containerWidth - size);
         const top = Math.random() * (containerHeight - size);
-        const colorIndex = Math.floor(Math.random() * colors.length);
+
+        // Usar color específico si se proporciona, sino aleatorio
+        const colorIndex = specificColorIndex !== null ? specificColorIndex : Math.floor(Math.random() * colors.length);
         const color = colors[colorIndex];
 
         bubble.style.width = `${size}px`;
@@ -537,6 +573,9 @@ function initBubbles() {
         osc.start(audioContext.currentTime);
         osc.stop(audioContext.currentTime + 0.06);
     }
+
+    // Guardar referencia global a createBubble
+    createBubbleFunc = createBubble;
 
     // Crear burbujas iniciales SIN DELAY
     container.innerHTML = '';
