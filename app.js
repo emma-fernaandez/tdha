@@ -291,12 +291,11 @@ let targetCount = 0;
 let currentCount = 0;
 
 const colors = [
-    'rgba(255, 107, 107, 0.7)',    // Rojo/Rosa
+    'rgba(255, 107, 107, 0.7)',    // Rojo
     'rgba(78, 205, 196, 0.7)',     // Turquesa
     'rgba(255, 159, 243, 0.7)',    // Rosa
     'rgba(132, 129, 255, 0.7)',    // Morado
-    'rgba(255, 234, 167, 0.7)',    // Amarillo
-    'rgba(162, 155, 254, 0.7)'     // Lila
+    'rgba(255, 234, 167, 0.7)'     // Amarillo
 ];
 
 const colorNames = [
@@ -304,8 +303,7 @@ const colorNames = [
     'Turquesas',
     'Rosas',
     'Moradas',
-    'Amarillas',
-    'Lilas'
+    'Amarillas'
 ];
 
 function toggleGameMode() {
