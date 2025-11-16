@@ -283,21 +283,84 @@ function initDrawingBoard() {
 let bubblesInitialized = false;
 let audioContext;
 
+// Variables del modo juego
+let isGameMode = false;
+let targetColor = '';
+let targetColorIndex = -1;
+let targetCount = 0;
+let currentCount = 0;
+
+const colors = [
+    'rgba(255, 107, 107, 0.7)',    // Rojo/Rosa
+    'rgba(78, 205, 196, 0.7)',     // Turquesa
+    'rgba(255, 159, 243, 0.7)',    // Rosa
+    'rgba(132, 129, 255, 0.7)',    // Morado
+    'rgba(255, 234, 167, 0.7)',    // Amarillo
+    'rgba(162, 155, 254, 0.7)'     // Lila
+];
+
+const colorNames = [
+    'Rojas',
+    'Turquesas',
+    'Rosas',
+    'Moradas',
+    'Amarillas',
+    'Lilas'
+];
+
+function toggleGameMode() {
+    isGameMode = !isGameMode;
+    const gameModeBtn = document.querySelector('.game-mode-btn');
+    const gameObjective = document.getElementById('gameObjective');
+
+    if (isGameMode) {
+        gameModeBtn.classList.add('active');
+        gameModeBtn.textContent = '🎮 Modo Normal';
+        gameObjective.style.display = 'block';
+        generateNewObjective();
+    } else {
+        gameModeBtn.classList.remove('active');
+        gameModeBtn.textContent = '🎮 Modo Juego';
+        gameObjective.style.display = 'none';
+    }
+}
+
+function generateNewObjective() {
+    // Generar color objetivo aleatorio
+    targetColorIndex = Math.floor(Math.random() * colors.length);
+    targetColor = colors[targetColorIndex];
+
+    // Generar número de burbujas a explotar (entre 3 y 8)
+    targetCount = Math.floor(Math.random() * 6) + 3;
+    currentCount = 0;
+
+    // Actualizar interfaz
+    const targetColorDisplay = document.getElementById('targetColorDisplay');
+    const objectiveCounter = document.getElementById('objectiveCounter');
+
+    targetColorDisplay.style.background = targetColor;
+    objectiveCounter.textContent = `0/${targetCount}`;
+}
+
+function updateObjectiveCounter() {
+    currentCount++;
+    const objectiveCounter = document.getElementById('objectiveCounter');
+    objectiveCounter.textContent = `${currentCount}/${targetCount}`;
+
+    // Si completó el objetivo, generar uno nuevo
+    if (currentCount >= targetCount) {
+        setTimeout(() => {
+            generateNewObjective();
+        }, 500);
+    }
+}
+
 function initBubbles() {
     if (bubblesInitialized) return;
     bubblesInitialized = true;
 
     const container = document.getElementById('bubblesContainer');
     if (!container) return;
-
-    const colors = [
-        'rgba(255, 107, 107, 0.7)',
-        'rgba(78, 205, 196, 0.7)',
-        'rgba(255, 159, 243, 0.7)',
-        'rgba(132, 129, 255, 0.7)',
-        'rgba(255, 234, 167, 0.7)',
-        'rgba(162, 155, 254, 0.7)'
-    ];
 
     function createBubble() {
         const containerWidth = container.clientWidth;
@@ -314,7 +377,8 @@ function initBubbles() {
         const size = Math.random() * 50 + 50;
         const left = Math.random() * (containerWidth - size);
         const top = Math.random() * (containerHeight - size);
-        const color = colors[Math.floor(Math.random() * colors.length)];
+        const colorIndex = Math.floor(Math.random() * colors.length);
+        const color = colors[colorIndex];
 
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
@@ -324,11 +388,26 @@ function initBubbles() {
         bubble.style.animationDelay = `${Math.random() * 2}s`;
         bubble.style.animationDuration = `${Math.random() * 2 + 2}s`;
 
+        // Guardar el índice de color en la burbuja
+        bubble.dataset.colorIndex = colorIndex;
+
         // Animación de aparición suave
         bubble.style.animation = 'bubbleAppear 0.4s ease-out, float 3s ease-in-out infinite ' + (Math.random() * 2) + 's';
 
         bubble.addEventListener('click', (e) => {
             e.stopPropagation();
+
+            // Si está en modo juego, verificar si es el color correcto
+            if (isGameMode) {
+                const bubbleColorIndex = parseInt(bubble.dataset.colorIndex);
+                if (bubbleColorIndex === targetColorIndex) {
+                    // Color correcto! Actualizar contador
+                    updateObjectiveCounter();
+                } else {
+                    // Color incorrecto, no hacer nada más que explotar
+                    // (no cuenta para el objetivo)
+                }
+            }
 
             // Crear partículas de explosión
             createParticles(bubble, color);
@@ -383,41 +462,33 @@ function initBubbles() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        // Crear dos osciladores para un sonido de "pop" más realista
-        const osc1 = audioContext.createOscillator();
-        const osc2 = audioContext.createOscillator();
+        // Sonido de pop ligero y agradable - tipo burbuja suave
+        const osc = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         const filter = audioContext.createBiquadFilter();
 
-        osc1.connect(filter);
-        osc2.connect(filter);
+        osc.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        // Pop suave y agradable - como explotar plástico de burbujas
-        osc1.type = 'sine';
-        osc1.frequency.value = 800;
+        // Sonido más agudo y ligero
+        osc.type = 'sine';
+        osc.frequency.value = 1000;
 
-        osc2.type = 'sine';
-        osc2.frequency.value = 1200;
+        // Filtro pasa-altos para sonido más brillante y ligero
+        filter.type = 'highpass';
+        filter.frequency.value = 400;
+        filter.Q.value = 0.5;
 
-        // Filtro pasa-bajos para suavizar
-        filter.type = 'lowpass';
-        filter.frequency.value = 2000;
-        filter.Q.value = 1;
+        // Volumen muy suave
+        gainNode.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06);
 
-        // Volumen suave que decae rápido
-        gainNode.gain.setValueAtTime(0.06, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
+        // Frecuencia que baja ligeramente para efecto pop delicado
+        osc.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.06);
 
-        // Frecuencias que bajan rápidamente (efecto pop)
-        osc1.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.08);
-        osc2.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.08);
-
-        osc1.start(audioContext.currentTime);
-        osc2.start(audioContext.currentTime);
-        osc1.stop(audioContext.currentTime + 0.08);
-        osc2.stop(audioContext.currentTime + 0.08);
+        osc.start(audioContext.currentTime);
+        osc.stop(audioContext.currentTime + 0.06);
     }
 
     // Crear burbujas iniciales SIN DELAY

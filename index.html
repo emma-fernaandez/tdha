@@ -108,8 +108,19 @@
     <div id="bubbles-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
         <button class="sound-btn" onclick="toggleSound()">🔊</button>
+        <button class="game-mode-btn" onclick="toggleGameMode()">🎮 Modo Juego</button>
         <div class="activity-container">
             <h2>Pop Bubbles</h2>
+
+            <!-- Objetivo del modo juego -->
+            <div id="gameObjective" class="game-objective" style="display: none;">
+                <div class="objective-content">
+                    <span>Explota</span>
+                    <div id="targetColorDisplay" class="target-color-display"></div>
+                    <span id="objectiveCounter" class="objective-counter">0/0</span>
+                </div>
+            </div>
+
             <div id="bubblesContainer"></div>
             <p class="hint">Toca las burbujas para explotarlas</p>
         </div>

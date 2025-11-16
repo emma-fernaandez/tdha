@@ -164,6 +164,76 @@ h1 {
     opacity: 0.5;
 }
 
+/* Botón de modo juego */
+.game-mode-btn {
+    position: fixed;
+    top: clamp(15px, 3vw, 25px);
+    right: clamp(75px, 15vw, 90px);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+}
+
+.game-mode-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(240, 147, 251, 0.6);
+}
+
+.game-mode-btn:active {
+    transform: scale(0.98);
+}
+
+.game-mode-btn.active {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+/* Interfaz de objetivo del modo juego */
+.game-objective {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 15px 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.objective-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    font-weight: 600;
+}
+
+.target-color-display {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.objective-counter {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-weight: 700;
+    min-width: 60px;
+}
+
 .activity-container {
     text-align: center;
     width: 100%;
