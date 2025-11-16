@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Aplicación de fidget digital para personas con TDAH">
+    <title>TDAH Fidget - Relaja tu mente</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Pantalla de inicio -->
+    <div id="home-screen" class="screen active">
+        <div class="container">
+            <h1>🧠 TDAH Fidget</h1>
+            <p class="subtitle">Pequeñas distracciones para mantenerte enfocado</p>
+
+            <div class="activities-grid">
+                <button class="activity-card" data-activity="toggle">
+                    <div class="activity-icon">🔘</div>
+                    <h3>Interruptor</h3>
+                    <p>Toggle switch con sonido suave</p>
+                </button>
+
+                <button class="activity-card" data-activity="drawing">
+                    <div class="activity-icon">🎨</div>
+                    <h3>Pizarra Zen</h3>
+                    <p>Dibuja y observa cómo se borra</p>
+                </button>
+
+                <button class="activity-card" data-activity="bubbles">
+                    <div class="activity-icon">🫧</div>
+                    <h3>Burbujas</h3>
+                    <p>Toca para explotar burbujas</p>
+                </button>
+
+                <button class="activity-card" data-activity="spinner">
+                    <div class="activity-icon">⭕</div>
+                    <h3>Spinner</h3>
+                    <p>Gira y observa el movimiento</p>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actividad: Toggle Switch -->
+    <div id="toggle-screen" class="screen">
+        <button class="back-btn" onclick="goHome()">← Volver</button>
+        <div class="activity-container">
+            <h2>Interruptor Fidget</h2>
+            <div class="toggle-wrapper">
+                <div class="toggle-switch" id="toggleSwitch">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <p class="hint">Toca para cambiar</p>
+        </div>
+    </div>
+
+    <!-- Actividad: Pizarra de dibujo -->
+    <div id="drawing-screen" class="screen">
+        <button class="back-btn" onclick="goHome()">← Volver</button>
+        <div class="activity-container">
+            <h2>Pizarra Zen</h2>
+            <canvas id="drawingCanvas"></canvas>
+            <div class="drawing-controls">
+                <label>
+                    <input type="range" id="brushSize" min="5" max="50" value="20">
+                    <span>Tamaño</span>
+                </label>
+                <button id="clearCanvas" class="control-btn">Limpiar</button>
+            </div>
+            <p class="hint">Dibuja con el dedo - se borra automáticamente</p>
+        </div>
+    </div>
+
+    <!-- Actividad: Burbujas -->
+    <div id="bubbles-screen" class="screen">
+        <button class="back-btn" onclick="goHome()">← Volver</button>
+        <div class="activity-container">
+            <h2>Pop Bubbles</h2>
+            <div id="bubblesContainer"></div>
+            <p class="hint">Toca las burbujas para explotarlas</p>
+        </div>
+    </div>
+
+    <!-- Actividad: Spinner -->
+    <div id="spinner-screen" class="screen">
+        <button class="back-btn" onclick="goHome()">← Volver</button>
+        <div class="activity-container">
+            <h2>Spinner</h2>
+            <div class="spinner-wrapper">
+                <svg id="spinner" viewBox="0 0 200 200" width="200" height="200">
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="url(#gradient1)" stroke-width="8"/>
+                    <circle cx="100" cy="100" r="60" fill="none" stroke="url(#gradient2)" stroke-width="6"/>
+                    <circle cx="100" cy="100" r="40" fill="none" stroke="url(#gradient3)" stroke-width="4"/>
+                    <defs>
+                        <linearGradient id="gradient1">
+                            <stop offset="0%" stop-color="#667eea"/>
+                            <stop offset="100%" stop-color="#764ba2"/>
+                        </linearGradient>
+                        <linearGradient id="gradient2">
+                            <stop offset="0%" stop-color="#f093fb"/>
+                            <stop offset="100%" stop-color="#f5576c"/>
+                        </linearGradient>
+                        <linearGradient id="gradient3">
+                            <stop offset="0%" stop-color="#4facfe"/>
+                            <stop offset="100%" stop-color="#00f2fe"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <div class="spinner-controls">
+                <button id="spinBtn" class="control-btn">Girar</button>
+                <label>
+                    <input type="range" id="spinSpeed" min="1" max="10" value="5">
+                    <span>Velocidad</span>
+                </label>
+            </div>
+            <p class="hint">Arrastra para girar o usa el botón</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
