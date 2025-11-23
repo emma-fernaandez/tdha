@@ -1067,6 +1067,12 @@ h1 {
 
 /* ========== STRESS CUBE ========== */
 
+/* Asegurar que el título esté por encima del cubo 3D */
+#stresscube-screen .activity-container h2 {
+    position: relative;
+    z-index: 10;
+}
+
 /* Escena 3D para el cubo */
 .cube-scene {
     width: clamp(200px, 50vw, 280px);
@@ -1074,6 +1080,8 @@ h1 {
     margin: 30px auto;
     perspective: 800px;
     perspective-origin: 50% 50%;
+    position: relative;
+    z-index: 1;
 }
 
 /* El cubo 3D */
