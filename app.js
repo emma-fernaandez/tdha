@@ -395,12 +395,12 @@ function initDrawingBoard() {
     autoFadeToggle.addEventListener('click', () => {
         autoFadeEnabled = !autoFadeEnabled;
         if (autoFadeEnabled) {
-            autoFadeToggle.classList.add('active');
-            autoFadeToggle.textContent = '🔄 Auto-borrado';
+            autoFadeToggle.classList.remove('disabled');
+            autoFadeToggle.title = 'Auto-borrado activado';
             fadeTimeLabel.classList.remove('disabled');
         } else {
-            autoFadeToggle.classList.remove('active');
-            autoFadeToggle.textContent = '📌 Permanente';
+            autoFadeToggle.classList.add('disabled');
+            autoFadeToggle.title = 'Auto-borrado desactivado (permanente)';
             fadeTimeLabel.classList.add('disabled');
         }
     });

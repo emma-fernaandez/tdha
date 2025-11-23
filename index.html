@@ -135,6 +135,9 @@
     <div id="drawing-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
         <button class="sound-btn" onclick="toggleSound()">🔊</button>
+        <button id="autoFadeToggle" class="autofade-btn" title="Auto-borrado activado">
+            <span class="eraser-icon">🧽</span>
+        </button>
         <div class="activity-container">
             <h2>Pizarra Zen</h2>
 
@@ -157,13 +160,10 @@
                     <input type="range" id="brushSize" min="5" max="50" value="20">
                     <span>Tamaño</span>
                 </label>
-                <div class="fade-control">
-                    <button id="autoFadeToggle" class="control-btn active">🔄 Auto-borrado</button>
-                    <label id="fadeTimeLabel">
-                        <input type="range" id="fadeTime" min="1" max="10" value="3" step="1">
-                        <span><span id="fadeTimeValue">3</span>s</span>
-                    </label>
-                </div>
+                <label id="fadeTimeLabel">
+                    <input type="range" id="fadeTime" min="1" max="10" value="3" step="1">
+                    <span>Borrado: <span id="fadeTimeValue">3</span>s</span>
+                </label>
                 <button id="clearCanvas" class="control-btn">Limpiar</button>
             </div>
         </div>
