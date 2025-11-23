@@ -64,6 +64,12 @@
                     <h3>Spinner</h3>
                     <p>Gira y observa el movimiento</p>
                 </button>
+
+                <button class="activity-card" data-activity="slime">
+                    <div class="activity-icon">🟢</div>
+                    <h3>Slime</h3>
+                    <p>Estira y aplasta el slime</p>
+                </button>
             </div>
         </div>
     </div>
@@ -288,6 +294,39 @@
 
             </div>
             <p class="hint">Arrastra el spinner para girarlo - tiene inercia real</p>
+        </div>
+    </div>
+
+    <!-- Actividad: Slime -->
+    <div id="slime-screen" class="screen">
+        <button class="back-btn" onclick="goHome()">← Volver</button>
+        <button class="sound-btn" onclick="toggleSound()">🔊</button>
+        <div class="activity-container">
+            <h2>Slime Interactivo</h2>
+
+            <!-- Selector de texturas -->
+            <div class="texture-picker">
+                <button class="texture-option active" data-texture="fluffy">
+                    <span class="texture-icon">☁️</span>
+                    <span class="texture-name">Fluffy</span>
+                </button>
+                <button class="texture-option" data-texture="glossy">
+                    <span class="texture-icon">✨</span>
+                    <span class="texture-name">Glossy</span>
+                </button>
+                <button class="texture-option" data-texture="gel">
+                    <span class="texture-icon">💧</span>
+                    <span class="texture-name">Gel</span>
+                </button>
+            </div>
+
+            <div id="slimeContainer">
+                <div id="slimeBlob" class="slime-blob fluffy">
+                    <div class="slime-highlight"></div>
+                    <div class="slime-highlight secondary"></div>
+                </div>
+            </div>
+            <p class="hint">Arrastra, estira y aplasta el slime</p>
         </div>
     </div>
 

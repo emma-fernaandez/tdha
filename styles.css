@@ -990,6 +990,224 @@ h1 {
     /* Ya está optimizado para dark por defecto */
 }
 
+/* ========== SLIME ========== */
+
+/* Contenedor del slime */
+#slimeContainer {
+    position: relative;
+    width: clamp(280px, 80vw, 500px);
+    height: clamp(280px, 60vh, 500px);
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Selector de texturas */
+.texture-picker {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.texture-option {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    padding: 12px 20px;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 80px;
+}
+
+.texture-option:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
+.texture-option.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: white;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.texture-icon {
+    font-size: 1.5rem;
+}
+
+.texture-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Base del slime blob */
+.slime-blob {
+    width: clamp(150px, 40vw, 220px);
+    height: clamp(150px, 40vw, 220px);
+    border-radius: 50%;
+    position: relative;
+    cursor: grab;
+    transition: border-radius 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    user-select: none;
+    will-change: transform, border-radius;
+}
+
+.slime-blob:active {
+    cursor: grabbing;
+}
+
+/* Highlights del slime */
+.slime-highlight {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* TEXTURA 1: Fluffy - Suave, esponjoso, colores pastel */
+.slime-blob.fluffy {
+    background: radial-gradient(circle at 35% 35%,
+        #b8e6ff 0%,
+        #7fd4ff 30%,
+        #5bc0eb 60%,
+        #3aa0d8 100%);
+    box-shadow:
+        0 20px 60px rgba(91, 192, 235, 0.5),
+        inset -15px -15px 40px rgba(0, 0, 0, 0.15),
+        inset 15px 15px 40px rgba(255, 255, 255, 0.4);
+}
+
+.slime-blob.fluffy .slime-highlight {
+    width: 40%;
+    height: 25%;
+    top: 15%;
+    left: 20%;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.8) 0%,
+        rgba(255, 255, 255, 0) 70%);
+}
+
+.slime-blob.fluffy .slime-highlight.secondary {
+    width: 15%;
+    height: 10%;
+    top: 45%;
+    left: 60%;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0) 70%);
+}
+
+/* TEXTURA 2: Glossy - Brillante, reflectante */
+.slime-blob.glossy {
+    background: radial-gradient(circle at 30% 30%,
+        #ff9ecd 0%,
+        #ff6eb4 25%,
+        #e91e8c 50%,
+        #c4007a 100%);
+    box-shadow:
+        0 20px 60px rgba(233, 30, 140, 0.5),
+        inset -10px -10px 30px rgba(0, 0, 0, 0.25),
+        inset 10px 10px 30px rgba(255, 255, 255, 0.5),
+        0 0 40px rgba(255, 110, 180, 0.3);
+}
+
+.slime-blob.glossy .slime-highlight {
+    width: 50%;
+    height: 30%;
+    top: 10%;
+    left: 15%;
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(255, 255, 255, 0.4) 40%,
+        rgba(255, 255, 255, 0) 70%);
+    border-radius: 50% 50% 40% 60%;
+}
+
+.slime-blob.glossy .slime-highlight.secondary {
+    width: 20%;
+    height: 12%;
+    top: 50%;
+    left: 55%;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.7) 0%,
+        rgba(255, 255, 255, 0) 70%);
+}
+
+/* TEXTURA 3: Gel - Transparente, gelatinoso */
+.slime-blob.gel {
+    background: radial-gradient(circle at 35% 35%,
+        rgba(144, 238, 144, 0.9) 0%,
+        rgba(60, 179, 113, 0.85) 30%,
+        rgba(34, 139, 34, 0.8) 60%,
+        rgba(0, 100, 0, 0.75) 100%);
+    box-shadow:
+        0 20px 60px rgba(60, 179, 113, 0.4),
+        inset -8px -8px 25px rgba(0, 0, 0, 0.2),
+        inset 8px 8px 25px rgba(255, 255, 255, 0.3),
+        0 0 50px rgba(144, 238, 144, 0.2);
+    backdrop-filter: blur(2px);
+}
+
+.slime-blob.gel .slime-highlight {
+    width: 35%;
+    height: 20%;
+    top: 18%;
+    left: 22%;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(255, 255, 255, 0) 70%);
+}
+
+.slime-blob.gel .slime-highlight.secondary {
+    width: 25%;
+    height: 15%;
+    top: 55%;
+    left: 50%;
+    background: radial-gradient(ellipse at center,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 70%);
+}
+
+/* Animación idle del slime - respiración suave */
+@keyframes slimeIdle {
+    0%, 100% {
+        border-radius: 50% 50% 50% 50% / 50% 50% 50% 50%;
+    }
+    25% {
+        border-radius: 48% 52% 53% 47% / 52% 48% 52% 48%;
+    }
+    50% {
+        border-radius: 52% 48% 47% 53% / 48% 52% 48% 52%;
+    }
+    75% {
+        border-radius: 47% 53% 52% 48% / 53% 47% 47% 53%;
+    }
+}
+
+.slime-blob:not(.dragging) {
+    animation: slimeIdle 4s ease-in-out infinite;
+}
+
+.slime-blob.dragging {
+    animation: none;
+}
+
+/* Efecto de estiramiento al arrastrar */
+.slime-blob.stretched {
+    transition: none;
+}
+
 /* Reducir movimiento para usuarios con preferencias de accesibilidad */
 @media (prefers-reduced-motion: reduce) {
     * {

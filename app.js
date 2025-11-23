@@ -53,6 +53,9 @@ function showScreen(screenId, activity) {
                 case 'spinner':
                     initSpinner();
                     break;
+                case 'slime':
+                    initSlime();
+                    break;
             }
         });
     }
@@ -888,4 +891,292 @@ function changeSpinnerStyle() {
     });
 
     currentSpinnerModel = newModel;
+}
+
+// ========== SLIME INTERACTIVO ==========
+let slimeInitialized = false;
+let slimeAudioContext = null;
+
+function initSlime() {
+    if (slimeInitialized) return;
+    slimeInitialized = true;
+
+    const blob = document.getElementById('slimeBlob');
+    const container = document.getElementById('slimeContainer');
+    const textureOptions = document.querySelectorAll('.texture-option');
+
+    if (!blob || !container) return;
+
+    // Variables de física
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let velocityX = 0;
+    let velocityY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    let lastTime = 0;
+
+    // Posición del blob dentro del contenedor
+    let blobX = 0;
+    let blobY = 0;
+
+    // Selector de texturas
+    textureOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            textureOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+
+            const texture = option.dataset.texture;
+            blob.className = 'slime-blob ' + texture;
+
+            // Sonido al cambiar textura
+            if (soundEnabled) {
+                playSquishSound(0.3, texture);
+            }
+        });
+    });
+
+    function getCoordinates(e) {
+        const rect = container.getBoundingClientRect();
+        let clientX, clientY;
+
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        return {
+            x: clientX - rect.left - rect.width / 2,
+            y: clientY - rect.top - rect.height / 2
+        };
+    }
+
+    function startDrag(e) {
+        e.preventDefault();
+        isDragging = true;
+        blob.classList.add('dragging');
+
+        const coords = getCoordinates(e);
+        startX = coords.x;
+        startY = coords.y;
+        lastX = coords.x;
+        lastY = coords.y;
+        lastTime = performance.now();
+
+        // Sonido inicial al agarrar
+        if (soundEnabled) {
+            playSquishSound(0.2);
+        }
+    }
+
+    function drag(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+
+        const coords = getCoordinates(e);
+        currentX = coords.x;
+        currentY = coords.y;
+
+        // Calcular velocidad
+        const currentTime = performance.now();
+        const timeDelta = currentTime - lastTime;
+        if (timeDelta > 0) {
+            velocityX = (currentX - lastX) / timeDelta * 10;
+            velocityY = (currentY - lastY) / timeDelta * 10;
+        }
+
+        lastX = currentX;
+        lastY = currentY;
+        lastTime = currentTime;
+
+        // Calcular desplazamiento desde el centro
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+
+        // Distancia de estiramiento
+        const stretchDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const maxStretch = 150;
+        const normalizedStretch = Math.min(stretchDistance / maxStretch, 1);
+
+        // Calcular deformación del blob
+        const stretchFactor = 1 + normalizedStretch * 0.5;
+        const squeezeFactor = 1 / Math.sqrt(stretchFactor);
+
+        // Ángulo de estiramiento
+        const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+
+        // Aplicar transformación con deformación
+        const translateX = deltaX * 0.3;
+        const translateY = deltaY * 0.3;
+
+        blob.style.transform = `
+            translate(${translateX}px, ${translateY}px)
+            rotate(${angle}deg)
+            scale(${stretchFactor}, ${squeezeFactor})
+            rotate(${-angle}deg)
+        `;
+
+        // Deformar el border-radius según la dirección
+        const stretch = normalizedStretch * 15;
+        const angleRad = Math.atan2(deltaY, deltaX);
+        const cos = Math.cos(angleRad);
+        const sin = Math.sin(angleRad);
+
+        // Crear border-radius orgánico
+        const br1 = 50 + stretch * Math.abs(cos);
+        const br2 = 50 - stretch * Math.abs(cos);
+        const br3 = 50 + stretch * Math.abs(sin);
+        const br4 = 50 - stretch * Math.abs(sin);
+
+        blob.style.borderRadius = `${br1}% ${br2}% ${br2}% ${br1}% / ${br3}% ${br3}% ${br4}% ${br4}%`;
+
+        // Sonido de estiramiento continuo (suave)
+        if (soundEnabled && stretchDistance > 20 && Math.random() < 0.1) {
+            playSquishSound(0.08 + normalizedStretch * 0.1);
+        }
+    }
+
+    function stopDrag(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        blob.classList.remove('dragging');
+
+        // Calcular magnitud del rebote
+        const velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+
+        // Sonido de liberación
+        if (soundEnabled && velocity > 0.5) {
+            playSquishSound(0.3 + Math.min(velocity * 0.05, 0.4));
+        }
+
+        // Animación de rebote elástico
+        animateReturn();
+    }
+
+    function animateReturn() {
+        // Rebote elástico al soltar
+        blob.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        blob.style.transform = 'translate(0, 0) scale(1)';
+        blob.style.borderRadius = '50%';
+
+        setTimeout(() => {
+            blob.style.transition = 'border-radius 0.1s ease';
+        }, 500);
+    }
+
+    // Event listeners
+    blob.addEventListener('mousedown', startDrag, false);
+    blob.addEventListener('touchstart', startDrag, { passive: false });
+
+    document.addEventListener('mousemove', drag, false);
+    document.addEventListener('touchmove', drag, { passive: false });
+
+    document.addEventListener('mouseup', stopDrag, false);
+    document.addEventListener('touchend', stopDrag, false);
+    document.addEventListener('touchcancel', stopDrag, false);
+}
+
+// Sonido de squish suave
+function playSquishSound(intensity = 0.3, texture = 'fluffy') {
+    if (!slimeAudioContext) {
+        slimeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const ctx = slimeAudioContext;
+    const now = ctx.currentTime;
+
+    // Oscilador principal - tono grave viscoso
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    const filter1 = ctx.createBiquadFilter();
+
+    osc1.connect(filter1);
+    filter1.connect(gain1);
+    gain1.connect(ctx.destination);
+
+    // Frecuencia base según textura
+    let baseFreq = 80;
+    let filterFreq = 300;
+
+    switch (texture) {
+        case 'fluffy':
+            baseFreq = 100;
+            filterFreq = 400;
+            break;
+        case 'glossy':
+            baseFreq = 120;
+            filterFreq = 600;
+            break;
+        case 'gel':
+            baseFreq = 70;
+            filterFreq = 250;
+            break;
+    }
+
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(baseFreq, now);
+    osc1.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + 0.15);
+
+    filter1.type = 'lowpass';
+    filter1.frequency.value = filterFreq;
+    filter1.Q.value = 2;
+
+    gain1.gain.setValueAtTime(0.08 * intensity, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+    osc1.start(now);
+    osc1.stop(now + 0.2);
+
+    // Segundo oscilador - modulación suave
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(baseFreq * 2, now);
+    osc2.frequency.exponentialRampToValueAtTime(baseFreq, now + 0.1);
+
+    gain2.gain.setValueAtTime(0.03 * intensity, now);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    osc2.start(now);
+    osc2.stop(now + 0.12);
+
+    // Ruido suave para textura (solo para glossy y gel)
+    if (texture !== 'fluffy') {
+        const bufferSize = ctx.sampleRate * 0.1;
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+            output[i] = (Math.random() * 2 - 1) * 0.3;
+        }
+
+        const noise = ctx.createBufferSource();
+        const noiseGain = ctx.createGain();
+        const noiseFilter = ctx.createBiquadFilter();
+
+        noise.buffer = noiseBuffer;
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.value = 200;
+        noiseFilter.Q.value = 1;
+
+        noiseGain.gain.setValueAtTime(0.015 * intensity, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        noise.start(now);
+        noise.stop(now + 0.1);
+    }
 }
