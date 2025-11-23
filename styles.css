@@ -1075,10 +1075,11 @@ h1 {
     margin: 20px auto;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end; /* Posicionar en el fondo */
+    padding-bottom: 20px;
     border-radius: 20px;
     background: rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow: visible; /* Permitir que el slime salga del contenedor al estirarlo */
 }
 
 /* Selector de texturas */
@@ -1127,15 +1128,17 @@ h1 {
 
 /* Base del slime blob */
 .slime-blob {
-    width: clamp(150px, 40vw, 220px);
-    height: clamp(150px, 40vw, 220px);
-    border-radius: 60% 40% 50% 50% / 50% 60% 40% 50%;
+    width: clamp(80px, 25vw, 120px);
+    height: clamp(50px, 15vw, 80px);
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
     position: relative;
     cursor: grab;
     -webkit-tap-highlight-color: transparent;
     touch-action: none;
     user-select: none;
-    will-change: transform, border-radius;
+    will-change: transform, border-radius, width, height;
+    transform-origin: center bottom; /* Origen desde abajo para estirar hacia arriba */
+    transition: none; /* Sin transición para respuesta inmediata */
 }
 
 .slime-blob:active {
