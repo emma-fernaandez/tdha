@@ -1071,6 +1071,11 @@ h1 {
 #stresscube-screen .activity-container h2 {
     position: relative;
     z-index: 10;
+    margin-bottom: 10px;
+}
+
+#stresscube-screen .activity-container {
+    padding-top: 20px;
 }
 
 /* Escena 3D para el cubo */

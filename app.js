@@ -971,8 +971,8 @@ function initStressCube() {
             bubble.classList.remove('pressing');
         }, 150);
 
-        // Auto-reparación después de un tiempo aleatorio
-        const repairTime = 1500 + Math.random() * 2000; // 1.5 a 3.5 segundos
+        // Auto-reparación después de un tiempo aleatorio (más largo)
+        const repairTime = 4000 + Math.random() * 4000; // 4 a 8 segundos
         setTimeout(() => {
             bubble.classList.add('returning');
             bubble.classList.remove('pressed');
