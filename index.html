@@ -65,10 +65,10 @@
                     <p>Gira y observa el movimiento</p>
                 </button>
 
-                <button class="activity-card" data-activity="slime">
-                    <div class="activity-icon">🟢</div>
-                    <h3>Slime</h3>
-                    <p>Estira y aplasta el slime</p>
+                <button class="activity-card" data-activity="stresscube">
+                    <div class="activity-icon">🧊</div>
+                    <h3>Stress Cube</h3>
+                    <p>Hunde las burbujas del cubo</p>
                 </button>
             </div>
         </div>
@@ -300,36 +300,42 @@
         </div>
     </div>
 
-    <!-- Actividad: Slime -->
-    <div id="slime-screen" class="screen">
+    <!-- Actividad: Stress Cube -->
+    <div id="stresscube-screen" class="screen">
         <button class="back-btn" onclick="goHome()">← Volver</button>
         <button class="sound-btn" onclick="toggleSound()">🔊</button>
         <div class="activity-container">
-            <h2>Slime Interactivo</h2>
+            <h2>Stress Cube</h2>
 
-            <!-- Selector de texturas -->
-            <div class="texture-picker">
-                <button class="texture-option active" data-texture="fluffy">
-                    <span class="texture-icon">☁️</span>
-                    <span class="texture-name">Fluffy</span>
-                </button>
-                <button class="texture-option" data-texture="glossy">
-                    <span class="texture-icon">✨</span>
-                    <span class="texture-name">Glossy</span>
-                </button>
-                <button class="texture-option" data-texture="gel">
-                    <span class="texture-icon">💧</span>
-                    <span class="texture-name">Gel</span>
-                </button>
-            </div>
-
-            <div id="slimeContainer">
-                <div id="slimeBlob" class="slime-blob fluffy">
-                    <div class="slime-highlight"></div>
-                    <div class="slime-highlight secondary"></div>
+            <div class="cube-scene">
+                <div class="cube" id="stressCube">
+                    <!-- Cara frontal -->
+                    <div class="cube-face front" data-face="front">
+                        <div class="bubble-grid" id="frontGrid"></div>
+                    </div>
+                    <!-- Cara trasera -->
+                    <div class="cube-face back" data-face="back">
+                        <div class="bubble-grid" id="backGrid"></div>
+                    </div>
+                    <!-- Cara derecha -->
+                    <div class="cube-face right" data-face="right">
+                        <div class="bubble-grid" id="rightGrid"></div>
+                    </div>
+                    <!-- Cara izquierda -->
+                    <div class="cube-face left" data-face="left">
+                        <div class="bubble-grid" id="leftGrid"></div>
+                    </div>
+                    <!-- Cara superior -->
+                    <div class="cube-face top" data-face="top">
+                        <div class="bubble-grid" id="topGrid"></div>
+                    </div>
+                    <!-- Cara inferior -->
+                    <div class="cube-face bottom" data-face="bottom">
+                        <div class="bubble-grid" id="bottomGrid"></div>
+                    </div>
                 </div>
             </div>
-            <p class="hint">Arrastra, estira y aplasta el slime</p>
+            <p class="hint">Arrastra para rotar el cubo • Hunde las burbujas</p>
         </div>
     </div>
 

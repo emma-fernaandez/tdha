@@ -53,8 +53,8 @@ function showScreen(screenId, activity) {
                 case 'spinner':
                     initSpinner();
                     break;
-                case 'slime':
-                    initSlime();
+                case 'stresscube':
+                    initStressCube();
                     break;
             }
         });
@@ -914,424 +914,187 @@ function changeSpinnerStyle() {
     currentSpinnerModel = newModel;
 }
 
-// ========== SLIME INTERACTIVO ==========
-let slimeInitialized = false;
-let slimeAudioContext = null;
+// ========== STRESS CUBE ==========
+let stressCubeInitialized = false;
+let cubeAudioContext = null;
 
-function initSlime() {
-    if (slimeInitialized) return;
-    slimeInitialized = true;
+function initStressCube() {
+    if (stressCubeInitialized) return;
+    stressCubeInitialized = true;
 
-    const blob = document.getElementById('slimeBlob');
-    const container = document.getElementById('slimeContainer');
-    const textureOptions = document.querySelectorAll('.texture-option');
+    const cube = document.getElementById('stressCube');
+    const grids = document.querySelectorAll('.bubble-grid');
 
-    if (!blob || !container) return;
+    if (!cube || grids.length === 0) return;
 
-    // Dimensiones base del slime
-    const baseWidth = blob.offsetWidth || 100;
-    const baseHeight = blob.offsetHeight || 60;
-
-    // Estado del slime
+    // Estado de rotación del cubo
+    let rotateX = -20;
+    let rotateY = -30;
     let isDragging = false;
-    let animationId = null;
+    let lastX = 0, lastY = 0;
 
-    // Posición del punto de agarre (relativo al contenedor)
-    let grabX = 0, grabY = 0;
-    // Posición inicial del blob cuando se empezó a arrastrar
-    let startGrabX = 0, startGrabY = 0;
+    // Crear burbujas en cada cara
+    grids.forEach(grid => {
+        for (let i = 0; i < 9; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'stress-bubble';
+            bubble.dataset.index = i;
 
-    // Dimensiones actuales (para estirar)
-    let currentWidth = baseWidth;
-    let currentHeight = baseHeight;
-    // Offset del slime desde su posición base
-    let offsetX = 0, offsetY = 0;
-    // Velocidades para la animación de retorno
-    let velWidth = 0, velHeight = 0;
-    let velOffsetX = 0, velOffsetY = 0;
+            // Event listeners para hundir la burbuja
+            bubble.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                pressBubble(bubble);
+            });
+            bubble.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                pressBubble(bubble);
+            }, { passive: true });
 
-    // Propiedades físicas (varían por textura)
-    let elasticity = 0.15; // Qué tan elástico es (retorno)
-    let maxStretch = 3.0; // Cuánto puede estirarse
-    let friction = 0.85; // Fricción/amortiguación
-    let stickiness = 0.5; // Qué tan "pegajoso" se siente
-
-    let currentTexture = 'fluffy';
-
-    // Selector de texturas
-    textureOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            textureOptions.forEach(opt => opt.classList.remove('active'));
-            option.classList.add('active');
-
-            currentTexture = option.dataset.texture;
-            blob.className = 'slime-blob ' + currentTexture;
-
-            switch (currentTexture) {
-                case 'fluffy':
-                    elasticity = 0.12;
-                    maxStretch = 2.5;
-                    friction = 0.82;
-                    stickiness = 0.6;
-                    break;
-                case 'glossy':
-                    elasticity = 0.18;
-                    maxStretch = 3.5;
-                    friction = 0.88;
-                    stickiness = 0.4;
-                    break;
-                case 'gel':
-                    elasticity = 0.1;
-                    maxStretch = 4.0;
-                    friction = 0.92;
-                    stickiness = 0.7;
-                    break;
-            }
-
-            if (soundEnabled) {
-                playSquishSound(0.3, currentTexture);
-            }
-        });
+            grid.appendChild(bubble);
+        }
     });
 
-    function getCoordinates(e) {
-        const rect = blob.getBoundingClientRect();
-        let clientX, clientY;
+    // Función para hundir una burbuja
+    function pressBubble(bubble) {
+        if (bubble.classList.contains('pressed')) return;
 
-        if (e.touches && e.touches.length > 0) {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-        } else {
-            clientX = e.clientX;
-            clientY = e.clientY;
+        bubble.classList.add('pressing');
+        bubble.classList.add('pressed');
+
+        // Sonido de pop suave
+        if (soundEnabled) {
+            playBubbleSound();
         }
 
-        // Coordenadas relativas al centro inferior del blob
-        const blobCenterX = rect.left + rect.width / 2;
-        const blobBottom = rect.bottom;
+        // Quitar clase de animación
+        setTimeout(() => {
+            bubble.classList.remove('pressing');
+        }, 150);
 
-        return {
-            x: clientX - blobCenterX,
-            y: blobBottom - clientY // Positivo hacia arriba
-        };
+        // Auto-reparación después de un tiempo aleatorio
+        const repairTime = 1500 + Math.random() * 2000; // 1.5 a 3.5 segundos
+        setTimeout(() => {
+            bubble.classList.add('returning');
+            bubble.classList.remove('pressed');
+
+            setTimeout(() => {
+                bubble.classList.remove('returning');
+            }, 400);
+
+            // Sonido suave de retorno
+            if (soundEnabled) {
+                playReturnSound();
+            }
+        }, repairTime);
     }
 
+    // Rotación del cubo con arrastre
     function startDrag(e) {
-        e.preventDefault();
+        // Verificar si el click fue en una burbuja
+        if (e.target.classList.contains('stress-bubble')) return;
+
         isDragging = true;
-        blob.classList.add('dragging');
-
-        const coords = getCoordinates(e);
-        grabX = coords.x;
-        grabY = coords.y;
-        startGrabX = grabX;
-        startGrabY = grabY;
-
-        // Sonido inicial de agarrar
-        if (soundEnabled) {
-            playSquishSound(0.3, currentTexture);
-        }
-
-        if (!animationId) {
-            animate();
-        }
+        const coords = getEventCoords(e);
+        lastX = coords.x;
+        lastY = coords.y;
     }
 
     function drag(e) {
         if (!isDragging) return;
         e.preventDefault();
 
-        const coords = getCoordinates(e);
-        grabX = coords.x;
-        grabY = coords.y;
+        const coords = getEventCoords(e);
+        const deltaX = coords.x - lastX;
+        const deltaY = coords.y - lastY;
+
+        rotateY += deltaX * 0.5;
+        rotateX -= deltaY * 0.5;
+
+        // Limitar rotación X para no voltear completamente
+        rotateX = Math.max(-60, Math.min(60, rotateX));
+
+        cube.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+        lastX = coords.x;
+        lastY = coords.y;
     }
 
-    function stopDrag(e) {
-        if (!isDragging) return;
+    function stopDrag() {
         isDragging = false;
-        blob.classList.remove('dragging');
-
-        // Calcular velocidad de retorno basada en estiramiento
-        const stretchDist = Math.sqrt(
-            Math.pow(currentWidth - baseWidth, 2) +
-            Math.pow(currentHeight - baseHeight, 2)
-        );
-
-        if (soundEnabled && stretchDist > 20) {
-            playSquishSound(0.4 + stretchDist * 0.002, currentTexture);
-        }
     }
 
-    function animate() {
-        if (isDragging) {
-            // === ESTIRAMIENTO MIENTRAS SE ARRASTRA ===
-
-            // Distancia del punto de agarre al centro-base del slime
-            const pullDistance = Math.sqrt(grabX * grabX + grabY * grabY);
-            const pullAngle = Math.atan2(grabY, grabX);
-
-            // Estirar el slime hacia donde se tira
-            const stretchFactor = Math.min(pullDistance / 50, maxStretch);
-
-            // Determinar dirección del estiramiento
-            if (grabY > 10) {
-                // Tirando hacia arriba - estirar verticalmente
-                currentHeight = baseHeight + grabY * stickiness * 2;
-                currentWidth = baseWidth * (1 - stretchFactor * 0.15);
-                offsetY = -grabY * stickiness * 0.3; // Mover un poco hacia arriba
-            } else if (Math.abs(grabX) > 10) {
-                // Tirando hacia los lados - estirar horizontalmente
-                currentWidth = baseWidth + Math.abs(grabX) * stickiness * 1.5;
-                currentHeight = baseHeight * (1 - stretchFactor * 0.1);
-                offsetX = grabX * stickiness * 0.5;
-            } else {
-                // Aplastando (empujando hacia abajo)
-                currentHeight = baseHeight * (1 - Math.abs(grabY) * 0.01);
-                currentWidth = baseWidth * (1 + Math.abs(grabY) * 0.02);
-            }
-
-            // Limitar dimensiones
-            currentWidth = Math.max(baseWidth * 0.5, Math.min(baseWidth * maxStretch, currentWidth));
-            currentHeight = Math.max(baseHeight * 0.3, Math.min(baseHeight * maxStretch * 1.5, currentHeight));
-
-            // Deformación orgánica del border-radius según dirección del tirón
-            const stretchRatio = currentHeight / baseHeight;
-            const widthRatio = currentWidth / baseWidth;
-
-            let br;
-            if (stretchRatio > 1.2) {
-                // Estirado hacia arriba - forma de gota
-                br = [
-                    40 + stretchRatio * 10,
-                    40 + stretchRatio * 10,
-                    50,
-                    50
-                ];
-            } else if (widthRatio > 1.2) {
-                // Estirado horizontalmente
-                br = [50, 50, 45, 45];
-            } else {
-                // Aplastado
-                br = [60, 60, 40, 40];
-            }
-
-            blob.style.width = `${currentWidth}px`;
-            blob.style.height = `${currentHeight}px`;
-            blob.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-            blob.style.borderRadius = `${br[0]}% ${br[1]}% ${br[2]}% ${br[3]}% / 60% 60% 40% 40%`;
-
-            // Sonido mientras se estira mucho
-            if (soundEnabled && stretchFactor > 1.5 && Math.random() < 0.03) {
-                playSquishSound(0.15, currentTexture);
-            }
-
-        } else {
-            // === RETORNO ELÁSTICO ===
-
-            // Fuerza de retorno proporcional a la diferencia
-            const dWidth = baseWidth - currentWidth;
-            const dHeight = baseHeight - currentHeight;
-            const dOffsetX = -offsetX;
-            const dOffsetY = -offsetY;
-
-            // Aplicar elasticidad (fuerza de resorte)
-            velWidth += dWidth * elasticity;
-            velHeight += dHeight * elasticity;
-            velOffsetX += dOffsetX * elasticity;
-            velOffsetY += dOffsetY * elasticity;
-
-            // Aplicar velocidad
-            currentWidth += velWidth;
-            currentHeight += velHeight;
-            offsetX += velOffsetX;
-            offsetY += velOffsetY;
-
-            // Fricción
-            velWidth *= friction;
-            velHeight *= friction;
-            velOffsetX *= friction;
-            velOffsetY *= friction;
-
-            // Wobble orgánico
-            const speed = Math.abs(velWidth) + Math.abs(velHeight);
-            const wobble = Math.sin(Date.now() * 0.015) * speed * 0.5;
-
-            const displayWidth = currentWidth + wobble;
-            const displayHeight = currentHeight - wobble * 0.5;
-
-            // Deformación dinámica del border-radius
-            const t = Date.now() * 0.004;
-            const jiggle = speed * 3;
-            const br = [
-                50 + Math.sin(t) * jiggle,
-                50 + Math.cos(t * 1.2) * jiggle,
-                45 + Math.sin(t * 0.8) * jiggle,
-                45 + Math.cos(t * 1.1) * jiggle
-            ];
-
-            blob.style.width = `${Math.max(baseWidth * 0.7, displayWidth)}px`;
-            blob.style.height = `${Math.max(baseHeight * 0.5, displayHeight)}px`;
-            blob.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-            blob.style.borderRadius = `${br[0]}% ${br[1]}% ${br[2]}% ${br[3]}% / 60% 60% 40% 40%`;
-
-            // Verificar si ya volvió al estado de reposo
-            const totalMovement = Math.abs(dWidth) + Math.abs(dHeight) +
-                                  Math.abs(velWidth) + Math.abs(velHeight) +
-                                  Math.abs(offsetX) + Math.abs(offsetY);
-
-            if (totalMovement < 0.5) {
-                // Resetear a estado base
-                currentWidth = baseWidth;
-                currentHeight = baseHeight;
-                offsetX = 0;
-                offsetY = 0;
-                velWidth = 0;
-                velHeight = 0;
-                velOffsetX = 0;
-                velOffsetY = 0;
-                blob.style.width = `${baseWidth}px`;
-                blob.style.height = `${baseHeight}px`;
-                blob.style.transform = 'translate(0, 0)';
-                blob.style.borderRadius = '50% 50% 45% 45% / 60% 60% 40% 40%';
-                animationId = null;
-                return;
-            }
+    function getEventCoords(e) {
+        if (e.touches && e.touches.length > 0) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
         }
-
-        animationId = requestAnimationFrame(animate);
+        return { x: e.clientX, y: e.clientY };
     }
 
-    // Event listeners en el blob
-    blob.addEventListener('mousedown', startDrag, false);
-    blob.addEventListener('touchstart', startDrag, { passive: false });
+    // Event listeners para rotación
+    cube.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
 
-    document.addEventListener('mousemove', drag, false);
+    cube.addEventListener('touchstart', startDrag, { passive: true });
     document.addEventListener('touchmove', drag, { passive: false });
-
-    document.addEventListener('mouseup', stopDrag, false);
-    document.addEventListener('touchend', stopDrag, false);
-    document.addEventListener('touchcancel', stopDrag, false);
-
-    // Poke - toque rápido para aplastar
-    let pokeTimeout;
-    blob.addEventListener('mousedown', () => {
-        pokeTimeout = setTimeout(() => { pokeTimeout = null; }, 150);
-    });
-    blob.addEventListener('mouseup', (e) => {
-        if (pokeTimeout) {
-            clearTimeout(pokeTimeout);
-            // Efecto de poke - aplastar brevemente
-            currentWidth = baseWidth * 1.3;
-            currentHeight = baseHeight * 0.6;
-            velWidth = -5;
-            velHeight = 5;
-            if (soundEnabled) {
-                playSquishSound(0.3, currentTexture);
-            }
-            if (!animationId) animate();
-        }
-    });
-
-    // Inicializar dimensiones
-    blob.style.width = `${baseWidth}px`;
-    blob.style.height = `${baseHeight}px`;
+    document.addEventListener('touchend', stopDrag);
 }
 
-// Sonido de squish suave
-function playSquishSound(intensity = 0.3, texture = 'fluffy') {
-    if (!slimeAudioContext) {
-        slimeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+// Sonido de burbuja hundiéndose
+function playBubbleSound() {
+    if (!cubeAudioContext) {
+        cubeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    const ctx = slimeAudioContext;
+    const ctx = cubeAudioContext;
     const now = ctx.currentTime;
 
-    // Oscilador principal - tono grave viscoso
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    const filter1 = ctx.createBiquadFilter();
+    // Sonido tipo "pop" suave
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
 
-    osc1.connect(filter1);
-    filter1.connect(gain1);
-    gain1.connect(ctx.destination);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
 
-    // Frecuencia base según textura
-    let baseFreq = 80;
-    let filterFreq = 300;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400 + Math.random() * 100, now);
+    osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
 
-    switch (texture) {
-        case 'fluffy':
-            baseFreq = 100;
-            filterFreq = 400;
-            break;
-        case 'glossy':
-            baseFreq = 120;
-            filterFreq = 600;
-            break;
-        case 'gel':
-            baseFreq = 70;
-            filterFreq = 250;
-            break;
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+    filter.Q.value = 1;
+
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+    osc.start(now);
+    osc.stop(now + 0.1);
+}
+
+// Sonido de retorno
+function playReturnSound() {
+    if (!cubeAudioContext) {
+        cubeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(baseFreq, now);
-    osc1.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + 0.15);
+    const ctx = cubeAudioContext;
+    const now = ctx.currentTime;
 
-    filter1.type = 'lowpass';
-    filter1.frequency.value = filterFreq;
-    filter1.Q.value = 2;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-    gain1.gain.setValueAtTime(0.08 * intensity, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
 
-    osc1.start(now);
-    osc1.stop(now + 0.2);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(350 + Math.random() * 50, now + 0.08);
 
-    // Segundo oscilador - modulación suave
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
+    gain.gain.setValueAtTime(0.04, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(baseFreq * 2, now);
-    osc2.frequency.exponentialRampToValueAtTime(baseFreq, now + 0.1);
-
-    gain2.gain.setValueAtTime(0.03 * intensity, now);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-
-    osc2.start(now);
-    osc2.stop(now + 0.12);
-
-    // Ruido suave para textura (solo para glossy y gel)
-    if (texture !== 'fluffy') {
-        const bufferSize = ctx.sampleRate * 0.1;
-        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-
-        for (let i = 0; i < bufferSize; i++) {
-            output[i] = (Math.random() * 2 - 1) * 0.3;
-        }
-
-        const noise = ctx.createBufferSource();
-        const noiseGain = ctx.createGain();
-        const noiseFilter = ctx.createBiquadFilter();
-
-        noise.buffer = noiseBuffer;
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
-
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.value = 200;
-        noiseFilter.Q.value = 1;
-
-        noiseGain.gain.setValueAtTime(0.015 * intensity, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-
-        noise.start(now);
-        noise.stop(now + 0.1);
-    }
+    osc.start(now);
+    osc.stop(now + 0.08);
 }
