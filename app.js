@@ -194,6 +194,17 @@ function initDrawingBoard() {
     const fadeTimeInput = document.getElementById('fadeTime');
     const fadeTimeValue = document.getElementById('fadeTimeValue');
     const clearBtn = document.getElementById('clearCanvas');
+    const colorOptions = document.querySelectorAll('.color-option');
+
+    // Variables de color
+    let selectedColor = '#ffffff';
+    let isRainbowMode = false;
+    let hue = 0;
+
+    // Audio para el trazado
+    let drawingAudioContext;
+    let drawingOscillator = null;
+    let drawingGain = null;
 
     // Ajustar tamaño del canvas
     function resizeCanvas() {
@@ -210,8 +221,73 @@ function initDrawingBoard() {
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
-    let hue = 0;
     const strokes = [];
+
+    // Selector de colores
+    colorOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            colorOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+
+            const color = option.dataset.color;
+            if (color === 'rainbow') {
+                isRainbowMode = true;
+            } else {
+                isRainbowMode = false;
+                selectedColor = color;
+            }
+        });
+    });
+
+    // Funciones de sonido de trazado
+    function startDrawingSound() {
+        if (!soundEnabled) return;
+
+        if (!drawingAudioContext) {
+            drawingAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if (drawingOscillator) return;
+
+        drawingOscillator = drawingAudioContext.createOscillator();
+        drawingGain = drawingAudioContext.createGain();
+        const filter = drawingAudioContext.createBiquadFilter();
+
+        drawingOscillator.connect(filter);
+        filter.connect(drawingGain);
+        drawingGain.connect(drawingAudioContext.destination);
+
+        drawingOscillator.type = 'sine';
+        drawingOscillator.frequency.value = 200;
+
+        filter.type = 'lowpass';
+        filter.frequency.value = 800;
+
+        drawingGain.gain.value = 0.03;
+
+        drawingOscillator.start();
+    }
+
+    function updateDrawingSound(x, y) {
+        if (!soundEnabled || !drawingOscillator) return;
+
+        // Variar frecuencia según posición Y (más arriba = más agudo)
+        const freq = 150 + (1 - y / canvas.height) * 200;
+        drawingOscillator.frequency.setValueAtTime(freq, drawingAudioContext.currentTime);
+    }
+
+    function stopDrawingSound() {
+        if (drawingOscillator) {
+            drawingGain.gain.exponentialRampToValueAtTime(0.001, drawingAudioContext.currentTime + 0.1);
+            setTimeout(() => {
+                if (drawingOscillator) {
+                    drawingOscillator.stop();
+                    drawingOscillator = null;
+                    drawingGain = null;
+                }
+            }, 100);
+        }
+    }
 
     function startDrawing(e) {
         e.preventDefault();
@@ -220,6 +296,7 @@ function initDrawingBoard() {
         if (coords) {
             [lastX, lastY] = coords;
         }
+        startDrawingSound();
     }
 
     function draw(e) {
@@ -230,7 +307,16 @@ function initDrawingBoard() {
         if (!coords) return;
         const [x, y] = coords;
 
-        ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+        // Determinar color del trazo
+        let strokeColor;
+        if (isRainbowMode) {
+            strokeColor = `hsl(${hue}, 100%, 60%)`;
+            hue = (hue + 3) % 360;
+        } else {
+            strokeColor = selectedColor;
+        }
+
+        ctx.strokeStyle = strokeColor;
         ctx.lineWidth = brushSizeInput.value;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -245,18 +331,21 @@ function initDrawingBoard() {
             y1: lastY,
             x2: x,
             y2: y,
-            color: ctx.strokeStyle,
+            color: strokeColor,
             width: ctx.lineWidth,
             timestamp: Date.now()
         });
 
         [lastX, lastY] = [x, y];
-        hue = (hue + 2) % 360;
+
+        // Actualizar sonido
+        updateDrawingSound(x, y);
     }
 
     function stopDrawing(e) {
         e.preventDefault();
         isDrawing = false;
+        stopDrawingSound();
     }
 
     function getCoordinates(e) {

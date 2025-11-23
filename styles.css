@@ -558,6 +558,55 @@ h1 {
     border-color: #4CAF50;
 }
 
+/* Selector de colores para la pizarra */
+.color-picker {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    max-width: 90vw;
+}
+
+.color-option {
+    width: clamp(30px, 8vw, 40px);
+    height: clamp(30px, 8vw, 40px);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-option:hover {
+    transform: scale(1.15);
+}
+
+.color-option.active {
+    border-color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.color-option.rainbow {
+    background: linear-gradient(135deg,
+        #ff6b6b 0%,
+        #ffd93d 20%,
+        #6bcb77 40%,
+        #4d96ff 60%,
+        #9b59b6 80%,
+        #ff6b6b 100%);
+    animation: rainbow-spin 3s linear infinite;
+}
+
+@keyframes rainbow-spin {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
 /* Drawing Canvas - Grande pero centrado */
 #drawingCanvas {
     width: clamp(300px, 85vw, 900px);
