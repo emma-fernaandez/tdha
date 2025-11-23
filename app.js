@@ -907,21 +907,33 @@ function initSlime() {
 
     if (!blob || !container) return;
 
-    // Variables de física
+    // Variables de física mejoradas
     let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let currentY = 0;
+    let dragPointX = 0;
+    let dragPointY = 0;
+    let blobCenterX = 0;
+    let blobCenterY = 0;
     let velocityX = 0;
     let velocityY = 0;
-    let lastX = 0;
-    let lastY = 0;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
     let lastTime = 0;
+    let animationId = null;
 
-    // Posición del blob dentro del contenedor
-    let blobX = 0;
-    let blobY = 0;
+    // Estado actual del slime
+    let currentScaleX = 1;
+    let currentScaleY = 1;
+    let currentRotation = 0;
+    let currentTranslateX = 0;
+    let currentTranslateY = 0;
+
+    // Propiedades físicas del slime (varían por textura)
+    let viscosity = 0.15; // Qué tan "pegajoso" es
+    let elasticity = 0.3; // Qué tan elástico es
+    let damping = 0.92; // Qué tan rápido pierde energía
+
+    // Textura actual
+    let currentTexture = 'fluffy';
 
     // Selector de texturas
     textureOptions.forEach(option => {
@@ -929,13 +941,33 @@ function initSlime() {
             textureOptions.forEach(opt => opt.classList.remove('active'));
             option.classList.add('active');
 
-            const texture = option.dataset.texture;
-            blob.className = 'slime-blob ' + texture;
+            currentTexture = option.dataset.texture;
+            blob.className = 'slime-blob ' + currentTexture;
 
-            // Sonido al cambiar textura
-            if (soundEnabled) {
-                playSquishSound(0.3, texture);
+            // Ajustar propiedades físicas según textura
+            switch (currentTexture) {
+                case 'fluffy':
+                    viscosity = 0.12;
+                    elasticity = 0.25;
+                    damping = 0.88;
+                    break;
+                case 'glossy':
+                    viscosity = 0.18;
+                    elasticity = 0.35;
+                    damping = 0.94;
+                    break;
+                case 'gel':
+                    viscosity = 0.08;
+                    elasticity = 0.45;
+                    damping = 0.96;
+                    break;
             }
+
+            // Sonido y efecto al cambiar textura
+            if (soundEnabled) {
+                playSquishSound(0.3, currentTexture);
+            }
+            triggerJiggle(0.3);
         });
     });
 
@@ -962,16 +994,29 @@ function initSlime() {
         isDragging = true;
         blob.classList.add('dragging');
 
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+
         const coords = getCoordinates(e);
-        startX = coords.x;
-        startY = coords.y;
-        lastX = coords.x;
-        lastY = coords.y;
+        dragPointX = coords.x;
+        dragPointY = coords.y;
+        lastMouseX = coords.x;
+        lastMouseY = coords.y;
         lastTime = performance.now();
 
-        // Sonido inicial al agarrar
+        // Reset velocidad
+        velocityX = 0;
+        velocityY = 0;
+
+        // Efecto inicial de "agarrar" - se aplasta un poco
+        currentScaleX = 1.08;
+        currentScaleY = 0.92;
+        applyTransform();
+
         if (soundEnabled) {
-            playSquishSound(0.2);
+            playSquishSound(0.25, currentTexture);
         }
     }
 
@@ -980,65 +1025,61 @@ function initSlime() {
         e.preventDefault();
 
         const coords = getCoordinates(e);
-        currentX = coords.x;
-        currentY = coords.y;
-
-        // Calcular velocidad
         const currentTime = performance.now();
-        const timeDelta = currentTime - lastTime;
-        if (timeDelta > 0) {
-            velocityX = (currentX - lastX) / timeDelta * 10;
-            velocityY = (currentY - lastY) / timeDelta * 10;
-        }
+        const timeDelta = Math.max(currentTime - lastTime, 1);
 
-        lastX = currentX;
-        lastY = currentY;
+        // Calcular velocidad del mouse
+        velocityX = (coords.x - lastMouseX) / timeDelta * 16;
+        velocityY = (coords.y - lastMouseY) / timeDelta * 16;
+
+        lastMouseX = coords.x;
+        lastMouseY = coords.y;
         lastTime = currentTime;
 
-        // Calcular desplazamiento desde el centro
-        const deltaX = currentX - startX;
-        const deltaY = currentY - startY;
+        // Vector de estiramiento desde el punto de agarre
+        const stretchX = coords.x - dragPointX;
+        const stretchY = coords.y - dragPointY;
+        const stretchDistance = Math.sqrt(stretchX * stretchX + stretchY * stretchY);
 
-        // Distancia de estiramiento
-        const stretchDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const maxStretch = 150;
-        const normalizedStretch = Math.min(stretchDistance / maxStretch, 1);
+        // Limitar estiramiento máximo con efecto viscoso
+        const maxStretch = 120;
+        const stretchRatio = Math.min(stretchDistance / maxStretch, 1);
 
-        // Calcular deformación del blob
-        const stretchFactor = 1 + normalizedStretch * 0.5;
-        const squeezeFactor = 1 / Math.sqrt(stretchFactor);
+        // El slime sigue el dedo con "retraso viscoso"
+        currentTranslateX = stretchX * viscosity * 3;
+        currentTranslateY = stretchY * viscosity * 3;
+
+        // Calcular deformación - más estiramiento = más alargado
+        const stretchAmount = 1 + stretchRatio * elasticity * 1.5;
+        const squeezeAmount = 1 / Math.sqrt(stretchAmount);
 
         // Ángulo de estiramiento
-        const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI);
+        const stretchAngle = Math.atan2(stretchY, stretchX);
+        currentRotation = stretchAngle * (180 / Math.PI);
 
-        // Aplicar transformación con deformación
-        const translateX = deltaX * 0.3;
-        const translateY = deltaY * 0.3;
+        // Aplicar escala en la dirección del estiramiento
+        currentScaleX = stretchAmount;
+        currentScaleY = squeezeAmount;
 
-        blob.style.transform = `
-            translate(${translateX}px, ${translateY}px)
-            rotate(${angle}deg)
-            scale(${stretchFactor}, ${squeezeFactor})
-            rotate(${-angle}deg)
-        `;
+        applyTransform();
 
-        // Deformar el border-radius según la dirección
-        const stretch = normalizedStretch * 15;
-        const angleRad = Math.atan2(deltaY, deltaX);
-        const cos = Math.cos(angleRad);
-        const sin = Math.sin(angleRad);
+        // Deformar border-radius de forma más orgánica
+        const blobiness = stretchRatio * 20;
+        const angle = stretchAngle;
+        const randomness = Math.sin(currentTime * 0.01) * 3;
 
-        // Crear border-radius orgánico
-        const br1 = 50 + stretch * Math.abs(cos);
-        const br2 = 50 - stretch * Math.abs(cos);
-        const br3 = 50 + stretch * Math.abs(sin);
-        const br4 = 50 - stretch * Math.abs(sin);
+        const br = [
+            60 + blobiness * Math.cos(angle) + randomness,
+            40 - blobiness * Math.cos(angle) - randomness,
+            50 + blobiness * Math.sin(angle) + randomness * 0.5,
+            50 - blobiness * Math.sin(angle) - randomness * 0.5
+        ];
 
-        blob.style.borderRadius = `${br1}% ${br2}% ${br2}% ${br1}% / ${br3}% ${br3}% ${br4}% ${br4}%`;
+        blob.style.borderRadius = `${br[0]}% ${br[1]}% ${br[2]}% ${br[3]}% / ${br[3]}% ${br[2]}% ${br[1]}% ${br[0]}%`;
 
-        // Sonido de estiramiento continuo (suave)
-        if (soundEnabled && stretchDistance > 20 && Math.random() < 0.1) {
-            playSquishSound(0.08 + normalizedStretch * 0.1);
+        // Sonido de estiramiento
+        if (soundEnabled && stretchDistance > 30 && Math.random() < 0.08) {
+            playSquishSound(0.06 + stretchRatio * 0.12, currentTexture);
         }
     }
 
@@ -1047,27 +1088,89 @@ function initSlime() {
         isDragging = false;
         blob.classList.remove('dragging');
 
-        // Calcular magnitud del rebote
-        const velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+        // Calcular intensidad del rebote basado en velocidad y estiramiento
+        const releaseVelocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+        const releaseIntensity = Math.min(releaseVelocity * 0.1 + Math.abs(currentScaleX - 1) * 2, 1);
 
-        // Sonido de liberación
-        if (soundEnabled && velocity > 0.5) {
-            playSquishSound(0.3 + Math.min(velocity * 0.05, 0.4));
+        if (soundEnabled && releaseIntensity > 0.1) {
+            playSquishSound(0.2 + releaseIntensity * 0.4, currentTexture);
         }
 
-        // Animación de rebote elástico
-        animateReturn();
+        // Iniciar animación de jiggle/wobble
+        triggerJiggle(releaseIntensity);
     }
 
-    function animateReturn() {
-        // Rebote elástico al soltar
-        blob.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        blob.style.transform = 'translate(0, 0) scale(1)';
-        blob.style.borderRadius = '50%';
+    function triggerJiggle(intensity) {
+        let time = 0;
+        const startScaleX = currentScaleX;
+        const startScaleY = currentScaleY;
+        const startTranslateX = currentTranslateX;
+        const startTranslateY = currentTranslateY;
 
-        setTimeout(() => {
-            blob.style.transition = 'border-radius 0.1s ease';
-        }, 500);
+        // Frecuencia y amplitud del wobble
+        const frequency = 8 + (1 - viscosity) * 4; // Más viscoso = más lento
+        const duration = 800 + viscosity * 400; // Más viscoso = dura más
+
+        function animateJiggle() {
+            time += 16;
+            const progress = time / duration;
+
+            if (progress >= 1) {
+                // Finalizar en estado neutral
+                currentScaleX = 1;
+                currentScaleY = 1;
+                currentTranslateX = 0;
+                currentTranslateY = 0;
+                currentRotation = 0;
+                applyTransform();
+                blob.style.borderRadius = '60% 40% 50% 50% / 50% 60% 40% 50%';
+                animationId = null;
+                return;
+            }
+
+            // Decaimiento exponencial con wobble sinusoidal
+            const decay = Math.pow(damping, time / 16);
+            const wobble = Math.sin(time * 0.001 * frequency * Math.PI * 2) * decay * intensity;
+
+            // Oscilación de escala
+            currentScaleX = 1 + wobble * 0.3 * (startScaleX > 1 ? 1 : -1);
+            currentScaleY = 1 - wobble * 0.25 * (startScaleY < 1 ? 1 : -1);
+
+            // Retorno gradual de posición
+            currentTranslateX = startTranslateX * (1 - progress) * decay;
+            currentTranslateY = startTranslateY * (1 - progress) * decay;
+
+            // Wobble en rotación
+            currentRotation = wobble * 5;
+
+            applyTransform();
+
+            // Border-radius con wobble
+            const wobbleBR = Math.abs(wobble) * 15;
+            const br = [
+                60 + wobbleBR * Math.sin(time * 0.008),
+                40 - wobbleBR * Math.cos(time * 0.008),
+                50 + wobbleBR * Math.cos(time * 0.006),
+                50 - wobbleBR * Math.sin(time * 0.006)
+            ];
+            blob.style.borderRadius = `${br[0]}% ${br[1]}% ${br[2]}% ${br[3]}% / ${br[3]}% ${br[2]}% ${br[1]}% ${br[0]}%`;
+
+            animationId = requestAnimationFrame(animateJiggle);
+        }
+
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        animateJiggle();
+    }
+
+    function applyTransform() {
+        blob.style.transform = `
+            translate(${currentTranslateX}px, ${currentTranslateY}px)
+            rotate(${currentRotation}deg)
+            scale(${currentScaleX}, ${currentScaleY})
+            rotate(${-currentRotation}deg)
+        `;
     }
 
     // Event listeners
@@ -1080,6 +1183,16 @@ function initSlime() {
     document.addEventListener('mouseup', stopDrag, false);
     document.addEventListener('touchend', stopDrag, false);
     document.addEventListener('touchcancel', stopDrag, false);
+
+    // Click simple para "poke" - toque rápido
+    blob.addEventListener('click', (e) => {
+        if (!isDragging) {
+            if (soundEnabled) {
+                playSquishSound(0.2, currentTexture);
+            }
+            triggerJiggle(0.4);
+        }
+    });
 }
 
 // Sonido de squish suave
