@@ -196,6 +196,8 @@ function initDrawingBoard() {
     const brushSizeInput = document.getElementById('brushSize');
     const fadeTimeInput = document.getElementById('fadeTime');
     const fadeTimeValue = document.getElementById('fadeTimeValue');
+    const fadeTimeLabel = document.getElementById('fadeTimeLabel');
+    const autoFadeToggle = document.getElementById('autoFadeToggle');
     const clearBtn = document.getElementById('clearCanvas');
     const colorOptions = document.querySelectorAll('.color-option');
 
@@ -203,6 +205,9 @@ function initDrawingBoard() {
     let selectedColor = '#ffffff';
     let isRainbowMode = false;
     let hue = 0;
+
+    // Auto-borrado activado por defecto
+    let autoFadeEnabled = true;
 
     // Audio para el trazado
     let drawingAudioContext;
@@ -386,6 +391,20 @@ function initDrawingBoard() {
         fadeTimeValue.textContent = fadeTimeInput.value;
     });
 
+    // Toggle auto-fade
+    autoFadeToggle.addEventListener('click', () => {
+        autoFadeEnabled = !autoFadeEnabled;
+        if (autoFadeEnabled) {
+            autoFadeToggle.classList.add('active');
+            autoFadeToggle.textContent = '🔄 Auto-borrado';
+            fadeTimeLabel.classList.remove('disabled');
+        } else {
+            autoFadeToggle.classList.remove('active');
+            autoFadeToggle.textContent = '📌 Permanente';
+            fadeTimeLabel.classList.add('disabled');
+        }
+    });
+
     // Clear button
     clearBtn.addEventListener('click', () => {
         strokes.length = 0;
@@ -393,8 +412,10 @@ function initDrawingBoard() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     });
 
-    // Auto-borrado gradual
+    // Auto-borrado gradual (solo si está activado)
     setInterval(() => {
+        if (!autoFadeEnabled) return; // Si está desactivado, no borrar
+
         const now = Date.now();
         const fadeTime = fadeTimeInput.value * 1000; // Convertir segundos a milisegundos
         const validStrokes = strokes.filter(stroke => now - stroke.timestamp < fadeTime);
