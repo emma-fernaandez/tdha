@@ -804,13 +804,52 @@ h1 {
     padding: 20px;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
+    position: relative;
 }
 
 .spinner-wrapper:active {
     cursor: grabbing;
 }
 
-#spinner {
+/* Botón cambiar modelo de spinner */
+.change-spinner-btn {
+    position: fixed;
+    bottom: clamp(20px, 4vw, 30px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: clamp(0.9rem, 2vw, 1rem);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.change-spinner-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.change-spinner-btn:active {
+    transform: translateX(-50%) scale(0.98);
+}
+
+/* Modelos de spinner */
+.spinner-model {
+    display: none;
+}
+
+.spinner-model.active {
+    display: block;
+}
+
+.spinner-svg {
     width: clamp(200px, 50vw, 350px);
     height: clamp(200px, 50vw, 350px);
     filter: drop-shadow(0 8px 25px rgba(0,0,0,0.5));
@@ -821,11 +860,11 @@ h1 {
     transform-origin: center center;
 }
 
-#spinner:focus {
+.spinner-svg:focus {
     outline: none;
 }
 
-#spinner:active {
+.spinner-svg:active {
     outline: none;
 }
 

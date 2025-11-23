@@ -702,12 +702,16 @@ function initBubbles() {
 
 // Spinner realista con física mejorada - como un spinner real
 let spinnerInitialized = false;
+let currentSpinnerModel = 0;
+const totalSpinnerModels = 6;
+let spinnerRotation = 0;
+
 function initSpinner() {
     if (spinnerInitialized) return;
     spinnerInitialized = true;
 
-    const spinner = document.getElementById('spinner');
-    if (!spinner) return;
+    const spinners = document.querySelectorAll('.spinner-svg');
+    if (spinners.length === 0) return;
 
     let rotation = 0;
     let velocity = 0;
@@ -717,7 +721,13 @@ function initSpinner() {
     let animationId = null;
     const velocityHistory = [];
 
+    function getActiveSpinner() {
+        const activeModel = document.querySelector('.spinner-model.active');
+        return activeModel ? activeModel.querySelector('.spinner-svg') : spinners[0];
+    }
+
     function getAngle(e) {
+        const spinner = getActiveSpinner();
         const rect = spinner.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -732,6 +742,13 @@ function initSpinner() {
         }
 
         return Math.atan2(clientY - centerY, clientX - centerX);
+    }
+
+    function updateAllSpinnersRotation() {
+        spinners.forEach(spinner => {
+            spinner.style.transform = `rotate(${rotation}deg)`;
+        });
+        spinnerRotation = rotation;
     }
 
     function startDrag(e) {
@@ -780,8 +797,8 @@ function initSpinner() {
             }
         }
 
-        // Aplicar rotación inmediatamente
-        spinner.style.transform = `rotate(${rotation}deg)`;
+        // Aplicar rotación a todos los spinners
+        updateAllSpinnersRotation();
 
         lastAngle = currentAngle;
         lastTime = currentTime;
@@ -806,8 +823,8 @@ function initSpinner() {
 
     function applyInertia() {
         // Fricción más baja = gira más tiempo (como spinner real)
-        const friction = 0.985; // Antes era 0.95, ahora 0.985 para más inercia
-        const minVelocity = 0.05; // Velocidad mínima antes de parar
+        const friction = 0.985;
+        const minVelocity = 0.05;
 
         function animate() {
             if (Math.abs(velocity) < minVelocity) {
@@ -828,7 +845,7 @@ function initSpinner() {
             // Normalizar rotación para evitar números muy grandes
             rotation = rotation % 360;
 
-            spinner.style.transform = `rotate(${rotation}deg)`;
+            updateAllSpinnersRotation();
 
             animationId = requestAnimationFrame(animate);
         }
@@ -838,15 +855,37 @@ function initSpinner() {
         }
     }
 
-    // Mouse events
-    spinner.addEventListener('mousedown', startDrag, false);
+    // Añadir eventos a todos los spinners
+    spinners.forEach(spinner => {
+        spinner.addEventListener('mousedown', startDrag, false);
+        spinner.addEventListener('touchstart', startDrag, { passive: false });
+    });
+
     document.addEventListener('mousemove', drag, false);
     document.addEventListener('mouseup', stopDrag, false);
     document.addEventListener('mouseleave', stopDrag, false);
-
-    // Touch events - SIN passive para prevenir scroll
-    spinner.addEventListener('touchstart', startDrag, { passive: false });
     document.addEventListener('touchmove', drag, { passive: false });
     document.addEventListener('touchend', stopDrag, false);
     document.addEventListener('touchcancel', stopDrag, false);
+}
+
+function changeSpinnerStyle() {
+    const allModels = document.querySelectorAll('.spinner-model');
+
+    // Generar un nuevo modelo aleatorio diferente al actual
+    let newModel;
+    do {
+        newModel = Math.floor(Math.random() * totalSpinnerModels);
+    } while (newModel === currentSpinnerModel && totalSpinnerModels > 1);
+
+    // Ocultar todos y mostrar el nuevo
+    allModels.forEach((model, index) => {
+        if (index === newModel) {
+            model.classList.add('active');
+        } else {
+            model.classList.remove('active');
+        }
+    });
+
+    currentSpinnerModel = newModel;
 }
