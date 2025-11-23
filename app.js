@@ -933,6 +933,10 @@ function initStressCube() {
     let isDragging = false;
     let lastX = 0, lastY = 0;
 
+    // Array para guardar todas las burbujas
+    const allBubbles = [];
+    const totalBubbles = 9 * 6; // 9 por cara × 6 caras = 54
+
     // Crear burbujas en cada cara
     grids.forEach(grid => {
         for (let i = 0; i < 9; i++) {
@@ -951,6 +955,7 @@ function initStressCube() {
             }, { passive: true });
 
             grid.appendChild(bubble);
+            allBubbles.push(bubble);
         }
     });
 
@@ -971,21 +976,45 @@ function initStressCube() {
             bubble.classList.remove('pressing');
         }, 150);
 
-        // Auto-reparación después de un tiempo aleatorio (más largo)
-        const repairTime = 4000 + Math.random() * 4000; // 4 a 8 segundos
-        setTimeout(() => {
-            bubble.classList.add('returning');
-            bubble.classList.remove('pressed');
+        // Verificar si todas las burbujas están hundidas
+        checkAllPressed();
+    }
 
+    // Verificar si todas las burbujas están hundidas
+    function checkAllPressed() {
+        const pressedCount = allBubbles.filter(b => b.classList.contains('pressed')).length;
+
+        if (pressedCount >= totalBubbles) {
+            // Todas hundidas! Esperar un momento y restaurar todas
             setTimeout(() => {
-                bubble.classList.remove('returning');
-            }, 400);
+                resetAllBubbles();
+            }, 500);
+        }
+    }
 
-            // Sonido suave de retorno
-            if (soundEnabled) {
-                playReturnSound();
-            }
-        }, repairTime);
+    // Restaurar todas las burbujas
+    function resetAllBubbles() {
+        // Sonido de celebración/reset
+        if (soundEnabled) {
+            playResetSound();
+        }
+
+        // Restaurar cada burbuja con un pequeño delay escalonado
+        allBubbles.forEach((bubble, index) => {
+            setTimeout(() => {
+                bubble.classList.add('returning');
+                bubble.classList.remove('pressed');
+
+                setTimeout(() => {
+                    bubble.classList.remove('returning');
+                }, 400);
+
+                // Sonido suave individual
+                if (soundEnabled && index % 6 === 0) {
+                    playReturnSound();
+                }
+            }, index * 30); // 30ms de delay entre cada burbuja
+        });
     }
 
     // Rotación del cubo con arrastre
@@ -1097,4 +1126,35 @@ function playReturnSound() {
 
     osc.start(now);
     osc.stop(now + 0.08);
+}
+
+// Sonido de reset/celebración cuando se completan todas
+function playResetSound() {
+    if (!cubeAudioContext) {
+        cubeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const ctx = cubeAudioContext;
+    const now = ctx.currentTime;
+
+    // Acorde ascendente de celebración
+    const notes = [300, 400, 500, 600];
+    notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+
+        const startTime = now + i * 0.08;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.06, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.3);
+    });
 }
