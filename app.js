@@ -1,3 +1,35 @@
+// AudioContext global único para toda la aplicación
+let globalAudioContext = null;
+let audioInitialized = false;
+
+function getAudioContext() {
+    if (!globalAudioContext) {
+        globalAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Resumir el contexto si está suspendido
+    if (globalAudioContext.state === 'suspended') {
+        globalAudioContext.resume();
+    }
+    return globalAudioContext;
+}
+
+// Inicializar audio en la primera interacción del usuario
+function initAudioOnFirstInteraction() {
+    if (audioInitialized) return;
+    audioInitialized = true;
+
+    const initAudio = () => {
+        getAudioContext(); // Crear y activar el contexto
+        document.removeEventListener('touchstart', initAudio);
+        document.removeEventListener('mousedown', initAudio);
+        document.removeEventListener('click', initAudio);
+    };
+
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('mousedown', initAudio, { once: true });
+    document.addEventListener('click', initAudio, { once: true });
+}
+
 // Estado global de sonido
 let soundEnabled = true;
 
@@ -17,6 +49,7 @@ function toggleSound() {
 // Navegación entre pantallas
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
+    initAudioOnFirstInteraction();
 });
 
 function initNavigation() {
@@ -141,7 +174,7 @@ function changeToggleStyle() {
 }
 
 function playClickSound(isOn) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = getAudioContext();
 
     // Sonido de click mecánico realista de interruptor
     const osc1 = audioContext.createOscillator();
@@ -189,7 +222,7 @@ function playClickSound(isOn) {
 
 // Sonido de click realista para interruptor de pared
 function playWallSwitchClick(isOn) {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = getAudioContext();
 
     // Crear ruido blanco para el "clack" mecánico
     const bufferSize = audioContext.sampleRate * 0.05;
@@ -311,7 +344,7 @@ function initDrawingBoard() {
         if (!soundEnabled) return;
 
         if (!drawingAudioContext) {
-            drawingAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+            drawingAudioContext = getAudioContext();
         }
 
         if (drawingOscillator) return;
@@ -731,7 +764,7 @@ function initBubbles() {
 
     function playPopSound() {
         if (!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext = getAudioContext();
         }
 
         // Sonido de pop ligero y agradable - tipo burbuja suave
@@ -798,7 +831,7 @@ let spinnerFilterNode = null;
 function initSpinnerSound() {
     if (spinnerAudioContext) return;
 
-    spinnerAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+    spinnerAudioContext = getAudioContext();
 
     // Crear buffer de ruido blanco
     const bufferSize = spinnerAudioContext.sampleRate * 2;
@@ -1229,7 +1262,7 @@ function initStressCube() {
 // Sonido de burbuja hundiéndose
 function playBubbleSound() {
     if (!cubeAudioContext) {
-        cubeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        cubeAudioContext = getAudioContext();
     }
 
     const ctx = cubeAudioContext;
@@ -1262,7 +1295,7 @@ function playBubbleSound() {
 // Sonido de retorno
 function playReturnSound() {
     if (!cubeAudioContext) {
-        cubeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        cubeAudioContext = getAudioContext();
     }
 
     const ctx = cubeAudioContext;
@@ -1288,7 +1321,7 @@ function playReturnSound() {
 // Sonido de reset/celebración cuando se completan todas
 function playResetSound() {
     if (!cubeAudioContext) {
-        cubeAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+        cubeAudioContext = getAudioContext();
     }
 
     const ctx = cubeAudioContext;
