@@ -69,7 +69,7 @@ function goHome() {
 let toggleInitialized = false;
 let currentToggleModel = 0;
 let toggleState = false; // Estado global del toggle (ON/OFF)
-const totalToggleModels = 6;
+const totalToggleModels = 7;
 
 function initToggleSwitch() {
     if (toggleInitialized) return;
@@ -93,9 +93,13 @@ function handleToggleClick(modelIndex) {
     // Actualizar estado visual de todos los modelos
     updateAllTogglesState();
 
-    // Reproducir sonido
+    // Reproducir sonido - especial para el interruptor de pared (modelo 6)
     if (soundEnabled) {
-        playClickSound(toggleState);
+        if (currentToggleModel === 6) {
+            playWallSwitchClick(toggleState);
+        } else {
+            playClickSound(toggleState);
+        }
     }
 }
 
@@ -181,6 +185,61 @@ function playClickSound(isOn) {
     osc2.start(audioContext.currentTime);
     osc1.stop(audioContext.currentTime + 0.04);
     osc2.stop(audioContext.currentTime + 0.04);
+}
+
+// Sonido de click realista para interruptor de pared
+function playWallSwitchClick(isOn) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Crear ruido blanco para el "clack" mecánico
+    const bufferSize = audioContext.sampleRate * 0.05;
+    const noiseBuffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = audioContext.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    // Filtro para darle el tono de plástico/metal
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = isOn ? 3500 : 2800;
+    filter.Q.value = 8;
+
+    // Segundo filtro para más definición
+    const hipass = audioContext.createBiquadFilter();
+    hipass.type = 'highpass';
+    hipass.frequency.value = 800;
+
+    // Envelope muy agresivo para el click
+    const gainNode = audioContext.createGain();
+    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.025);
+
+    // Añadir un tono de impacto
+    const osc = audioContext.createOscillator();
+    const oscGain = audioContext.createGain();
+    osc.type = 'square';
+    osc.frequency.value = isOn ? 180 : 120;
+    osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.02);
+    oscGain.gain.setValueAtTime(0.15, audioContext.currentTime);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.02);
+
+    // Conectar todo
+    noise.connect(filter);
+    filter.connect(hipass);
+    hipass.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    osc.connect(oscGain);
+    oscGain.connect(audioContext.destination);
+
+    noise.start(audioContext.currentTime);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.03);
 }
 
 // Pizarra de dibujo con auto-borrado

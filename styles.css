@@ -558,6 +558,210 @@ h1 {
     border-color: #4CAF50;
 }
 
+/* ========================================
+   MODELO 7: Interruptor de Pared Realista
+   ======================================== */
+.toggle-wall {
+    perspective: 800px;
+}
+
+.toggle-wall .wall-plate {
+    width: clamp(140px, 35vw, 220px);
+    height: clamp(220px, 55vw, 340px);
+    background: linear-gradient(180deg,
+        #f5f5f5 0%,
+        #e8e8e8 15%,
+        #e0e0e0 50%,
+        #d8d8d8 85%,
+        #d0d0d0 100%);
+    border-radius: 8px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: clamp(15px, 4vw, 25px) 0;
+    transform: rotateX(8deg) rotateY(-5deg);
+    transform-style: preserve-3d;
+    box-shadow:
+        12px 20px 40px rgba(0,0,0,0.4),
+        6px 10px 20px rgba(0,0,0,0.3),
+        -2px -2px 0 #fafafa,
+        2px 2px 0 #c0c0c0,
+        inset 0 0 0 3px #e8e8e8,
+        inset 3px 3px 6px rgba(255,255,255,0.8),
+        inset -3px -3px 6px rgba(0,0,0,0.15);
+}
+
+.toggle-wall .wall-screw {
+    width: clamp(14px, 3.5vw, 20px);
+    height: clamp(14px, 3.5vw, 20px);
+    background: linear-gradient(145deg,
+        #e0e0e0 0%,
+        #b0b0b0 30%,
+        #909090 70%,
+        #707070 100%);
+    border-radius: 50%;
+    position: relative;
+    box-shadow:
+        0 2px 4px rgba(0,0,0,0.4),
+        inset 0 1px 2px rgba(255,255,255,0.6),
+        inset 0 -1px 2px rgba(0,0,0,0.3);
+    transform: translateZ(2px);
+}
+
+.toggle-wall .wall-screw .screw-slot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%;
+    height: 12%;
+    background: linear-gradient(180deg, #404040, #606060);
+    transform: translate(-50%, -50%) rotate(-30deg);
+    border-radius: 1px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.5);
+}
+
+.toggle-wall .wall-switch-frame {
+    width: 75%;
+    height: 55%;
+    background: linear-gradient(180deg,
+        #e8e8e8 0%,
+        #d8d8d8 100%);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        inset 0 2px 6px rgba(0,0,0,0.25),
+        inset 0 -1px 2px rgba(255,255,255,0.5),
+        0 1px 2px rgba(255,255,255,0.3);
+    transform: translateZ(3px);
+}
+
+.toggle-wall .toggle-switch {
+    width: 85%;
+    height: 85%;
+    background: transparent;
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+    transform-style: preserve-3d;
+}
+
+.toggle-wall .rocker-switch {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.12s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transform-origin: center center;
+    transform: rotateX(12deg);
+}
+
+.toggle-wall .toggle-switch.active .rocker-switch {
+    transform: rotateX(-12deg);
+}
+
+.toggle-wall .rocker-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg,
+        #fafafa 0%,
+        #f0f0f0 20%,
+        #e8e8e8 50%,
+        #e0e0e0 100%);
+    border-radius: 3px 3px 0 0;
+    box-shadow:
+        inset 0 2px 4px rgba(255,255,255,0.9),
+        inset 0 -1px 3px rgba(0,0,0,0.1),
+        0 -2px 6px rgba(0,0,0,0.15);
+    transform: translateZ(8px);
+    transition: all 0.12s ease;
+}
+
+.toggle-wall .toggle-switch.active .rocker-top {
+    transform: translateZ(2px);
+    box-shadow:
+        inset 0 2px 4px rgba(255,255,255,0.5),
+        inset 0 -1px 3px rgba(0,0,0,0.2),
+        0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-wall .rocker-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg,
+        #e8e8e8 0%,
+        #e0e0e0 50%,
+        #d8d8d8 80%,
+        #d0d0d0 100%);
+    border-radius: 0 0 3px 3px;
+    box-shadow:
+        inset 0 1px 3px rgba(0,0,0,0.15),
+        inset 0 -2px 4px rgba(255,255,255,0.4),
+        0 4px 8px rgba(0,0,0,0.2);
+    transform: translateZ(2px);
+    transition: all 0.12s ease;
+}
+
+.toggle-wall .toggle-switch.active .rocker-bottom {
+    transform: translateZ(8px);
+    box-shadow:
+        inset 0 1px 3px rgba(0,0,0,0.1),
+        inset 0 -2px 4px rgba(255,255,255,0.7),
+        0 -2px 6px rgba(0,0,0,0.15);
+}
+
+.toggle-wall .rocker-switch::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(0,0,0,0.15) 20%,
+        rgba(0,0,0,0.2) 50%,
+        rgba(0,0,0,0.15) 80%,
+        transparent 100%);
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+.toggle-wall .toggle-switch.active .rocker-bottom::after {
+    content: '';
+    position: absolute;
+    bottom: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, #4ade80, #22c55e);
+    border-radius: 50%;
+    box-shadow:
+        0 0 8px #4ade80,
+        0 0 16px rgba(74, 222, 128, 0.5);
+}
+
+.toggle-wall .wall-plate:hover {
+    box-shadow:
+        14px 22px 45px rgba(0,0,0,0.45),
+        8px 12px 25px rgba(0,0,0,0.35),
+        -2px -2px 0 #fafafa,
+        2px 2px 0 #c0c0c0,
+        inset 0 0 0 3px #e8e8e8,
+        inset 3px 3px 6px rgba(255,255,255,0.8),
+        inset -3px -3px 6px rgba(0,0,0,0.15);
+}
+
 /* Selector de colores para la pizarra */
 .color-picker {
     display: flex;
