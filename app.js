@@ -789,6 +789,73 @@ let currentSpinnerModel = 0;
 const totalSpinnerModels = 6;
 let spinnerRotation = 0;
 
+// Audio del spinner
+let spinnerAudioContext = null;
+let spinnerNoiseSource = null;
+let spinnerGainNode = null;
+let spinnerFilterNode = null;
+
+function initSpinnerSound() {
+    if (spinnerAudioContext) return;
+
+    spinnerAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Crear buffer de ruido blanco
+    const bufferSize = spinnerAudioContext.sampleRate * 2;
+    const noiseBuffer = spinnerAudioContext.createBuffer(1, bufferSize, spinnerAudioContext.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+    }
+
+    // Crear fuente de ruido en loop
+    spinnerNoiseSource = spinnerAudioContext.createBufferSource();
+    spinnerNoiseSource.buffer = noiseBuffer;
+    spinnerNoiseSource.loop = true;
+
+    // Filtro para el sonido "whoosh"
+    spinnerFilterNode = spinnerAudioContext.createBiquadFilter();
+    spinnerFilterNode.type = 'bandpass';
+    spinnerFilterNode.frequency.value = 500;
+    spinnerFilterNode.Q.value = 1.5;
+
+    // Ganancia para controlar volumen
+    spinnerGainNode = spinnerAudioContext.createGain();
+    spinnerGainNode.gain.value = 0;
+
+    // Conectar
+    spinnerNoiseSource.connect(spinnerFilterNode);
+    spinnerFilterNode.connect(spinnerGainNode);
+    spinnerGainNode.connect(spinnerAudioContext.destination);
+
+    spinnerNoiseSource.start();
+}
+
+function updateSpinnerSound(velocity) {
+    if (!soundEnabled || !spinnerAudioContext || !spinnerGainNode) return;
+
+    const absVelocity = Math.abs(velocity);
+
+    // Volumen proporcional a la velocidad (máx 0.15)
+    const targetGain = Math.min(absVelocity / 80, 0.15);
+    spinnerGainNode.gain.setTargetAtTime(targetGain, spinnerAudioContext.currentTime, 0.05);
+
+    // Frecuencia del filtro proporcional a la velocidad
+    const targetFreq = 300 + (absVelocity * 25);
+    spinnerFilterNode.frequency.setTargetAtTime(
+        Math.min(targetFreq, 3000),
+        spinnerAudioContext.currentTime,
+        0.05
+    );
+}
+
+function stopSpinnerSound() {
+    if (spinnerGainNode && spinnerAudioContext) {
+        spinnerGainNode.gain.setTargetAtTime(0, spinnerAudioContext.currentTime, 0.1);
+    }
+}
+
 function initSpinner() {
     if (spinnerInitialized) return;
     spinnerInitialized = true;
@@ -849,6 +916,11 @@ function initSpinner() {
             cancelAnimationFrame(animationId);
             animationId = null;
         }
+
+        // Inicializar sonido del spinner
+        if (soundEnabled) {
+            initSpinnerSound();
+        }
     }
 
     function drag(e) {
@@ -883,6 +955,12 @@ function initSpinner() {
         // Aplicar rotación a todos los spinners
         updateAllSpinnersRotation();
 
+        // Actualizar sonido durante el arrastre
+        if (velocityHistory.length > 0) {
+            const avgVelocity = velocityHistory.reduce((a, b) => a + b, 0) / velocityHistory.length;
+            updateSpinnerSound(avgVelocity * 20);
+        }
+
         lastAngle = currentAngle;
         lastTime = currentTime;
     }
@@ -912,6 +990,7 @@ function initSpinner() {
         function animate() {
             if (Math.abs(velocity) < minVelocity) {
                 velocity = 0;
+                stopSpinnerSound();
                 if (animationId) {
                     cancelAnimationFrame(animationId);
                     animationId = null;
@@ -929,6 +1008,9 @@ function initSpinner() {
             rotation = rotation % 360;
 
             updateAllSpinnersRotation();
+
+            // Actualizar sonido según velocidad
+            updateSpinnerSound(velocity);
 
             animationId = requestAnimationFrame(animate);
         }
