@@ -833,26 +833,38 @@ function initSpinnerSound() {
 }
 
 function updateSpinnerSound(velocity) {
-    if (!soundEnabled || !spinnerAudioContext || !spinnerGainNode) return;
+    if (!spinnerAudioContext || !spinnerGainNode) return;
+
+    // Si el sonido está desactivado, silenciar
+    if (!soundEnabled) {
+        spinnerGainNode.gain.setValueAtTime(0, spinnerAudioContext.currentTime);
+        return;
+    }
 
     const absVelocity = Math.abs(velocity);
 
-    // Volumen proporcional a la velocidad (máx 0.15)
-    const targetGain = Math.min(absVelocity / 80, 0.15);
-    spinnerGainNode.gain.setTargetAtTime(targetGain, spinnerAudioContext.currentTime, 0.05);
+    // Si la velocidad es muy baja, silenciar completamente
+    if (absVelocity < 0.1) {
+        spinnerGainNode.gain.setValueAtTime(0, spinnerAudioContext.currentTime);
+        spinnerFilterNode.frequency.setValueAtTime(300, spinnerAudioContext.currentTime);
+        return;
+    }
+
+    // Volumen proporcional a la velocidad (máx 0.12)
+    const targetGain = Math.min(absVelocity / 100, 0.12);
+    spinnerGainNode.gain.setValueAtTime(targetGain, spinnerAudioContext.currentTime);
 
     // Frecuencia del filtro proporcional a la velocidad
-    const targetFreq = 300 + (absVelocity * 25);
-    spinnerFilterNode.frequency.setTargetAtTime(
-        Math.min(targetFreq, 3000),
-        spinnerAudioContext.currentTime,
-        0.05
+    const targetFreq = 400 + (absVelocity * 30);
+    spinnerFilterNode.frequency.setValueAtTime(
+        Math.min(targetFreq, 2500),
+        spinnerAudioContext.currentTime
     );
 }
 
 function stopSpinnerSound() {
     if (spinnerGainNode && spinnerAudioContext) {
-        spinnerGainNode.gain.setTargetAtTime(0, spinnerAudioContext.currentTime, 0.1);
+        spinnerGainNode.gain.setValueAtTime(0, spinnerAudioContext.currentTime);
     }
 }
 

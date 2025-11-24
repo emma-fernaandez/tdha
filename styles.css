@@ -766,23 +766,23 @@ h1 {
 .color-picker {
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: clamp(6px, 1.5vw, 10px);
     margin-bottom: 15px;
-    flex-wrap: wrap;
-    padding: 10px;
+    flex-wrap: nowrap;
+    padding: 8px 12px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
-    max-width: 90vw;
 }
 
 .color-option {
-    width: clamp(30px, 8vw, 40px);
-    height: clamp(30px, 8vw, 40px);
+    width: clamp(28px, 6vw, 36px);
+    height: clamp(28px, 6vw, 36px);
     border-radius: 50%;
     cursor: pointer;
-    border: 3px solid transparent;
+    border: 2px solid transparent;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
 }
 
 .color-option:hover {
@@ -878,14 +878,17 @@ h1 {
     background: rgba(255, 255, 255, 0.25);
     border: 2px solid rgba(255, 255, 255, 0.4);
     color: white;
-    padding: clamp(10px, 2vw, 14px) clamp(20px, 4vw, 30px);
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: clamp(0.9rem, 2vw, 1.1rem);
-    font-weight: 500;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
     -webkit-tap-highlight-color: transparent;
-    min-height: 44px;
 }
 
 .control-btn:hover {
