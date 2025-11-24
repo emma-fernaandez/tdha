@@ -833,38 +833,39 @@ function initSpinnerSound() {
 }
 
 function updateSpinnerSound(velocity) {
-    if (!spinnerAudioContext || !spinnerGainNode) return;
-
-    // Si el sonido está desactivado, silenciar
-    if (!soundEnabled) {
-        spinnerGainNode.gain.setValueAtTime(0, spinnerAudioContext.currentTime);
-        return;
-    }
+    if (!spinnerAudioContext || !spinnerGainNode || !spinnerFilterNode) return;
 
     const absVelocity = Math.abs(velocity);
 
-    // Si la velocidad es muy baja, silenciar completamente
-    if (absVelocity < 0.1) {
+    // Si el sonido está desactivado o velocidad muy baja, silenciar completamente
+    if (!soundEnabled || absVelocity < 0.5) {
+        spinnerGainNode.gain.cancelScheduledValues(spinnerAudioContext.currentTime);
         spinnerGainNode.gain.setValueAtTime(0, spinnerAudioContext.currentTime);
-        spinnerFilterNode.frequency.setValueAtTime(300, spinnerAudioContext.currentTime);
+        spinnerFilterNode.frequency.cancelScheduledValues(spinnerAudioContext.currentTime);
+        spinnerFilterNode.frequency.setValueAtTime(400, spinnerAudioContext.currentTime);
         return;
     }
 
-    // Volumen proporcional a la velocidad (máx 0.12)
-    const targetGain = Math.min(absVelocity / 100, 0.12);
+    // Volumen proporcional a la velocidad (máx 0.15)
+    const targetGain = Math.min(absVelocity / 80, 0.15);
+    spinnerGainNode.gain.cancelScheduledValues(spinnerAudioContext.currentTime);
     spinnerGainNode.gain.setValueAtTime(targetGain, spinnerAudioContext.currentTime);
 
     // Frecuencia del filtro proporcional a la velocidad
-    const targetFreq = 400 + (absVelocity * 30);
+    const targetFreq = 500 + (absVelocity * 25);
+    spinnerFilterNode.frequency.cancelScheduledValues(spinnerAudioContext.currentTime);
     spinnerFilterNode.frequency.setValueAtTime(
-        Math.min(targetFreq, 2500),
+        Math.min(targetFreq, 2800),
         spinnerAudioContext.currentTime
     );
 }
 
 function stopSpinnerSound() {
-    if (spinnerGainNode && spinnerAudioContext) {
+    if (spinnerGainNode && spinnerAudioContext && spinnerFilterNode) {
+        spinnerGainNode.gain.cancelScheduledValues(spinnerAudioContext.currentTime);
         spinnerGainNode.gain.setValueAtTime(0, spinnerAudioContext.currentTime);
+        spinnerFilterNode.frequency.cancelScheduledValues(spinnerAudioContext.currentTime);
+        spinnerFilterNode.frequency.setValueAtTime(400, spinnerAudioContext.currentTime);
     }
 }
 
@@ -928,6 +929,9 @@ function initSpinner() {
             cancelAnimationFrame(animationId);
             animationId = null;
         }
+
+        // Parar el sonido inmediatamente cuando se toca el spinner
+        stopSpinnerSound();
 
         // Inicializar sonido del spinner
         if (soundEnabled) {
